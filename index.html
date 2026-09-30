@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Central</title>
+<meta name="description" content="Power rankings, weekly recaps, results and the transaction wire for our dynasty league.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0:#0b1526; --bg-1:#122139; --card:#16243d; --card-hi:#1d2f4e; --line:#2a3d63; --line-hi:#42588a;
+    --text:#f1f3f8; --muted:#8a96b3; --dim:#5d6a88;
+    --red:#ef3a3a; --gold:#f5b500; --gold-hi:#ffd34a; --turf:#22b86c; --turf-dim:#1a7f4f; --blue:#4d8dff;
+    --QB:#ef4444; --RB:#22c55e; --WR:#3b82f6; --TE:#f59e0b; --K:#a78bfa; --DEF:#94a3b8; --PICK:#e2e8f0;
+    --display:'Anton', 'Oswald', Impact, 'Arial Narrow', sans-serif;
+    --cond:'Oswald', 'Arial Narrow', sans-serif;
+    --body:'Inter', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    margin:0; color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased;
+    background:
+      repeating-linear-gradient(180deg, transparent 0, transparent 78px, rgba(255,255,255,.022) 78px, rgba(255,255,255,.022) 80px),
+      radial-gradient(900px 500px at 0% -10%, rgba(245,181,0,.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(239,58,58,.09), transparent 60%),
+      linear-gradient(180deg, #0b1526 0%, #10203a 100%);
+    background-color:var(--bg-0);
+    min-height:100vh;
+  }
+  a { color:inherit; }
+  .wrap { max-width:1240px; margin:0 auto; padding-inline:18px; padding-block:0 80px; }
+
+  /* TICKER */
+  .ticker { background:#08111f; border-bottom:1px solid var(--line); overflow:hidden; white-space:nowrap; position:relative; }
+  .ticker::before { content:"FINAL \00B7  WEEK " attr(data-week); position:absolute; left:0; top:0; bottom:0; z-index:2; display:flex; align-items:center;
+    padding-inline:14px; background:var(--red); font:700 12px var(--cond); letter-spacing:.12em; }
+  .ticker-track { display:inline-flex; gap:34px; padding-block:9px; padding-left:100%; animation:tick 60s linear infinite; font:600 13px var(--cond); letter-spacing:.04em; }
+  .ticker:hover .ticker-track { animation-play-state:paused; }
+  .ticker-track span b { color:var(--gold-hi); }
+  .ticker-track .l { color:var(--muted); }
+  @keyframes tick { to { transform:translateX(-100%); } }
+  @media (prefers-reduced-motion:reduce) { .ticker-track { animation:none; padding-left:130px; } }
+
+  /* HERO */
+  .hero { text-align:center; padding-block:46px 22px; }
+  .kicker { display:inline-block; font:700 12px var(--cond); letter-spacing:.3em; color:var(--gold); border:1px solid rgba(245,181,0,.45);
+    padding:7px 14px; border-radius:4px; background:rgba(245,181,0,.07); }
+  h1 { font-family:var(--display); font-weight:400; font-size:clamp(46px, 10vw, 112px); line-height:.92; margin:18px 0 12px; letter-spacing:.01em;
+    background:linear-gradient(180deg,#fff 0%,#c8cfdd 55%,#8591ab 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 2px 0 rgba(0,0,0,.25); }
+  .sub { color:var(--muted); font:600 13px var(--cond); letter-spacing:.24em; text-transform:uppercase; }
+  .sub b { color:var(--gold); }
+  .updated { margin-top:10px; color:var(--dim); font-size:12px; }
+
+  /* NAV */
+  nav.jump { position:sticky; top:0; z-index:20; background:rgba(11,21,38,.88); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-block:1px solid var(--line); margin-inline:-18px; padding-inline:18px; }
+  nav.jump .in { display:flex; gap:6px; overflow-x:auto; padding-block:10px; scrollbar-width:none; }
+  nav.jump .in::-webkit-scrollbar { display:none; }
+  nav.jump a { flex:0 0 auto; text-decoration:none; font:600 13px var(--cond); letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+    padding:7px 12px; border-radius:999px; border:1px solid transparent; }
+  nav.jump a:hover, nav.jump a.on { color:var(--text); border-color:var(--line-hi); background:var(--card); }
+  nav.jump a.arch { color:var(--gold); }
+
+  /* SECTION HEADS */
+  section { scroll-margin-top:64px; }
+  .sh { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin:54px 0 18px; }
+  .sh h2 { margin:0; font-family:var(--display); font-weight:400; font-size:clamp(30px,5vw,44px); letter-spacing:.02em; line-height:1;
+    padding-left:14px; border-left:5px solid var(--red); }
+  .sh .hint { color:var(--muted); font:500 13px var(--cond); letter-spacing:.1em; text-transform:uppercase; }
+
+  .card { background:linear-gradient(180deg,var(--card-hi),var(--card)); border:1px solid var(--line); border-radius:12px; }
+  .pos { display:inline-block; min-width:30px; text-align:center; font:700 10px var(--cond); letter-spacing:.06em; padding:2px 5px; border-radius:3px;
+    color:#0b1526; background:var(--muted); }
+  .pos.QB{background:var(--QB)} .pos.RB{background:var(--RB)} .pos.WR{background:var(--WR)} .pos.TE{background:var(--TE)}
+  .pos.K{background:var(--K)} .pos.DEF{background:var(--DEF)} .pos.PICK{background:var(--PICK)}
+  .chip { display:inline-flex; align-items:center; justify-content:center; font:700 11px var(--cond); width:20px; height:20px; border-radius:4px; }
+  .chip.W { background:var(--turf); color:#04210f; } .chip.L { background:#3a2230; color:#ff8a8a; border:1px solid #5b2a3a; } .chip.T { background:var(--line); }
+  .num { font-variant-numeric:tabular-nums; }
+  .ta { position:relative; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; vertical-align:middle;
+    width:22px; height:22px; border-radius:50%; overflow:hidden; background:var(--line); border:1px solid var(--line-hi);
+    color:var(--muted); font:700 11px var(--cond); margin-right:8px; }
+  .ta img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .ta.xs { width:18px; height:18px; font-size:9px; margin-right:6px; }
+  .ta.md { width:30px; height:30px; font-size:13px; }
+  .ta.lg { width:46px; height:46px; font-size:18px; margin-right:0; border-width:2px; }
+  .ta.xl { width:78px; height:78px; font-size:28px; margin:0 auto 10px; display:flex; border:3px solid var(--gold); box-shadow:0 6px 20px rgba(0,0,0,.35); }
+  .tnw { display:inline-flex; align-items:center; min-width:0; max-width:100%; }
+  .tnw > span:last-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* GAME OF THE WEEK */
+  .gotw { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:18px; padding:26px 24px; position:relative; overflow:hidden; }
+  .gotw::before { content:""; position:absolute; inset:0; background:radial-gradient(600px 200px at 50% 0%, rgba(245,181,0,.14), transparent 70%); pointer-events:none; }
+  .gotw .lab { position:absolute; top:12px; left:50%; transform:translateX(-50%); font:700 11px var(--cond); letter-spacing:.3em; color:var(--gold); }
+  .gside { text-align:center; min-width:0; }
+  .gside .rk { font:700 13px var(--cond); color:var(--muted); letter-spacing:.1em; }
+  .gside .nm { font:700 clamp(18px,3vw,26px) var(--cond); text-transform:uppercase; margin:4px 0; overflow-wrap:anywhere; }
+  .gside .rec { color:var(--muted); font-size:13px; }
+  .vs { font-family:var(--display); font-size:40px; color:var(--red); }
+  .gline { grid-column:1 / -1; text-align:center; color:var(--muted); font-size:14px; border-top:1px dashed var(--line); padding-top:14px; }
+  .gline b { color:var(--gold-hi); }
+  .slate { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr)); gap:10px; margin-top:12px; }
+  .slate .m { padding:12px 14px; display:grid; grid-template-columns:1fr auto; gap:4px 10px; font-size:14px; }
+  .slate .m .t { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .slate .m .t i { font-style:normal; color:var(--dim); font:600 12px var(--cond); margin-right:6px; }
+  .slate .m .sp { color:var(--gold); font:600 13px var(--cond); text-align:right; }
+  .slate .m .avg { color:var(--muted); font-size:12px; text-align:right; }
+
+  /* POWER RANKINGS */
+  .pr { display:flex; flex-direction:column; gap:10px; }
+  .prc { padding:0; overflow:hidden; cursor:pointer; transition:border-color .15s, transform .15s; }
+  .prc:hover { border-color:var(--line-hi); }
+  .prc.me { border-color:rgba(245,181,0,.55); box-shadow:0 0 0 1px rgba(245,181,0,.2) inset; }
+  .prh { display:grid; grid-template-columns:74px 44px minmax(0,1.6fr) 150px 110px 150px 24px; gap:14px; align-items:center; padding:14px 16px; }
+  .rank { font-family:var(--display); font-size:44px; line-height:1; text-align:center; color:var(--text); }
+  .prc:nth-child(1) .rank { color:var(--gold-hi); } .prc:nth-child(2) .rank { color:#cfd5e1; } .prc:nth-child(3) .rank { color:#d08a4d; }
+  .mv { display:block; text-align:center; font:700 12px var(--cond); margin-top:4px; letter-spacing:.04em; }
+  .mv.up { color:var(--turf); } .mv.dn { color:var(--red); } .mv.eq { color:var(--dim); }
+  .av { width:44px; height:44px; border-radius:50%; background:var(--line) center/cover no-repeat; display:flex; align-items:center; justify-content:center;
+    font:700 18px var(--cond); color:var(--muted); border:2px solid var(--line-hi); }
+  .tn { min-width:0; }
+  .tn .n { font:700 19px var(--cond); text-transform:uppercase; letter-spacing:.02em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tn .o { color:var(--muted); font-size:12px; margin-top:2px; }
+  .tn .b { color:#c3cadb; font-size:13.5px; margin-top:6px; line-height:1.45; }
+  .rec2 { text-align:left; }
+  .rec2 .wl { font:700 24px var(--cond); } .rec2 .wl small { font-size:13px; color:var(--muted); margin-left:6px; font-weight:600; }
+  .rec2 .chips { display:flex; gap:3px; margin-top:5px; flex-wrap:wrap; }
+  .spark svg { display:block; width:110px; height:38px; }
+  .spark .lab { font-size:11px; color:var(--muted); margin-top:2px; }
+  .pscore .v { font:700 22px var(--cond); } .pscore .v small { font-size:12px; color:var(--muted); font-weight:600; }
+  .bar { height:6px; background:#0d1a2e; border-radius:3px; overflow:hidden; margin-top:6px; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--red),var(--gold)); border-radius:3px; }
+  .caret { color:var(--muted); transition:transform .2s; font-size:14px; }
+  .prc.open .caret { transform:rotate(180deg); }
+  .prd { display:none; border-top:1px solid var(--line); padding:16px; background:rgba(0,0,0,.14); }
+  .prc.open .prd { display:grid; grid-template-columns:1.5fr 1fr; gap:22px; }
+  .prd h4 { margin:0 0 10px; font:600 12px var(--cond); letter-spacing:.16em; color:var(--gold); text-transform:uppercase; }
+  .lu { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(210px,100%),1fr)); gap:6px; }
+  .lu div { display:flex; align-items:center; gap:8px; font-size:13px; padding:6px 8px; background:var(--bg-1); border-radius:6px; min-width:0; }
+  .lu div span.nm { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+  .inj { font:700 10px var(--cond); padding:2px 5px; border-radius:3px; background:#5b2a3a; color:#ffb4b4; letter-spacing:.04em; }
+  .inj.Questionable { background:#4a3f1a; color:var(--gold-hi); }
+  .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px; }
+  .stats div { background:var(--bg-1); border-radius:6px; padding:8px 10px; }
+  .stats b { display:block; font:700 18px var(--cond); } .stats span { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+  .assets div { display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:5px 0; border-bottom:1px solid var(--line); }
+  .assets div:last-child { border-bottom:0; }
+
+  /* WEEK BY WEEK */
+  .tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .tabs button { font:700 14px var(--cond); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); background:var(--card); border:1px solid var(--line);
+    padding:9px 16px; border-radius:8px; cursor:pointer; }
+  .tabs button.on { color:#0b1526; background:var(--gold); border-color:var(--gold); }
+  .news { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .nc { padding:16px 18px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .nc.big { grid-column:span 2; grid-row:span 2; padding:24px; justify-content:flex-end;
+    background:linear-gradient(160deg, rgba(239,58,58,.20), rgba(245,181,0,.08) 60%, transparent), linear-gradient(180deg,var(--card-hi),var(--card)); }
+  .nc .tag { font:700 11px var(--cond); letter-spacing:.2em; text-transform:uppercase; color:var(--gold); }
+  .nc.t-Trade .tag { color:var(--blue); } .nc.t-Heartbreak .tag, .nc.t-Blowout .tag { color:var(--red); } .nc.t-Waiver .tag { color:var(--turf); }
+  .nc h3 { margin:0; font:700 19px/1.2 var(--cond); letter-spacing:.01em; overflow-wrap:anywhere; }
+  .nc.big h3 { font-family:var(--display); font-weight:400; font-size:clamp(28px,4vw,42px); line-height:1.02; }
+  .nc p { margin:0; color:#b8c0d3; font-size:14px; line-height:1.5; }
+  .awards { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin:14px 0; }
+  .aw { padding:14px; text-align:center; min-width:0; }
+  .aw .i { font-size:22px; } .aw .k { font:600 11px var(--cond); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:6px; }
+  .aw .v { font:700 22px var(--cond); color:var(--gold-hi); margin-top:2px; } .aw .t { font-size:12.5px; color:#c3cadb; margin-top:2px; overflow-wrap:anywhere; }
+  .results { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .res { padding:14px 16px; }
+  .res .row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:5px 0; }
+  .res .row .n { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .res .row.win .n { color:var(--text); } .res .row.lose .n { color:var(--muted); }
+  .res .row .p { font:700 22px var(--cond); } .res .row.lose .p { color:var(--muted); }
+  .res .medb { font:700 9.5px var(--cond); letter-spacing:.08em; padding:2px 5px; border-radius:3px; }
+  .res .medb.W { background:rgba(34,184,108,.18); color:var(--turf); } .res .medb.L { background:rgba(239,58,58,.14); color:#ff8a8a; }
+  .res .star { font-size:12px; color:var(--muted); border-top:1px dashed var(--line); margin-top:6px; padding-top:8px; }
+  .res .star b { color:#c3cadb; font-weight:600; }
+  .res .mbar { height:4px; border-radius:2px; background:#0d1a2e; margin-top:4px; overflow:hidden; } .res .mbar i { display:block; height:100%; background:var(--gold); }
+  .subh { font:600 13px var(--cond); letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:26px 0 10px; }
+
+  /* TRADES + ADDS */
+  .trades { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr)); gap:12px; }
+  .tr { padding:14px 16px; }
+  .tr .when { font:600 11px var(--cond); letter-spacing:.14em; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
+  .tr .sides { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; }
+  .tr .side { min-width:0; }
+  .tr .side h5 { margin:0 0 8px; font:700 14px var(--cond); text-transform:uppercase; letter-spacing:.03em; overflow-wrap:anywhere; }
+  .tr .side h5 small { display:block; color:var(--muted); font:600 11px var(--body); text-transform:none; letter-spacing:0; margin-top:2px; }
+  .tr .side .g { display:flex; gap:7px; align-items:center; font-size:13px; padding:3px 0; }
+  .tr .side .g .nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tr .side .g .vv { color:var(--muted); font-size:12px; }
+  .tr .side .tot { margin-top:8px; font:700 16px var(--cond); } .tr .side.fav .tot { color:var(--turf); }
+  .tr .verdict { margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:13px; color:#c3cadb; }
+  .adds { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(290px,100%),1fr)); gap:8px; }
+  .ad { padding:10px 12px; display:flex; gap:10px; align-items:center; font-size:13px; }
+  .ad .x { flex:1; min-width:0; } .ad .x b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ad .x span { color:var(--muted); font-size:12px; }
+  .ad .bid { font:700 14px var(--cond); color:var(--turf); }
+
+  /* RESULTS GRID */
+  .gridwrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  .grid-t th, .grid-t td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; }
+  .grid-t th { font:600 12px var(--cond); letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+  .grid-t td.tm { text-align:left; font-weight:600; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+  .grid-t td.tm i { font-style:normal; color:var(--dim); font:600 12px var(--cond); margin-right:8px; }
+  .cell { display:inline-flex; flex-direction:column; align-items:center; gap:3px; }
+  .cell .pp { font:700 15px var(--cond); } .cell .cc { display:flex; gap:2px; }
+  .cell .chip { width:17px; height:17px; font-size:10px; }
+  .legend { color:var(--muted); font-size:12px; margin-top:10px; }
+
+  /* STANDINGS */
+  .st th, .st td { padding:10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  .st th { font:600 12px var(--cond); letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+  .st td:nth-child(1), .st th:nth-child(1) { text-align:center; width:40px; }
+  .st td:nth-child(2), .st th:nth-child(2) { text-align:left; }
+  .st td.tm { font-weight:600; } .st td.tm small { display:block; color:var(--muted); font-weight:500; font-size:11.5px; }
+  .st tr.cut td { border-bottom:2px dashed var(--gold); }
+  .st .lk.good { color:var(--turf); } .st .lk.bad { color:var(--red); }
+  .note { color:var(--muted); font-size:12.5px; margin-top:10px; line-height:1.5; }
+
+  /* INJURIES */
+  .injg { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr)); gap:10px; }
+  .ij { padding:12px 14px; }
+  .ij h5 { margin:0 0 8px; font:700 14px var(--cond); text-transform:uppercase; letter-spacing:.03em; }
+  .ij .r { display:flex; align-items:center; gap:8px; font-size:13px; padding:3px 0; } .ij .r .nm { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ij .r small { color:var(--muted); }
+
+  /* DYNASTY */
+  .dyn { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:12px; }
+  .dyn .card { padding:16px; }
+  .dbar { display:grid; grid-template-columns:minmax(0,1fr) 2fr 60px; gap:10px; align-items:center; font-size:13px; padding:5px 0; }
+  .dbar .n { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dbar .t { height:10px; background:#0d1a2e; border-radius:5px; overflow:hidden; } .dbar .t i { display:block; height:100%; background:linear-gradient(90deg,var(--blue),#8fb8ff); border-radius:5px; }
+  .dbar .v { text-align:right; font:600 13px var(--cond); color:var(--muted); }
+  .mvr { display:flex; align-items:center; gap:8px; font-size:13px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .mvr:last-child { border-bottom:0; } .mvr .nm { flex:1; min-width:0; } .mvr .nm small { display:block; color:var(--muted); font-size:11.5px; }
+  .mvr .d { font:700 14px var(--cond); } .mvr .d.up { color:var(--turf); } .mvr .d.dn { color:var(--red); }
+
+  footer { margin-top:64px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; line-height:1.6; display:grid; grid-template-columns:1.4fr 1fr; gap:24px; }
+  footer h4 { margin:0 0 6px; font:600 12px var(--cond); letter-spacing:.16em; color:var(--gold); text-transform:uppercase; }
+  footer a { color:var(--gold-hi); }
+
+  @media (max-width: 980px) {
+    .prh { grid-template-columns:58px 40px minmax(0,1fr) 120px 24px; }
+    .prh .spark, .prh .pscore { display:none; }
+    .news { grid-template-columns:1fr 1fr; } .awards { grid-template-columns:repeat(3,1fr); }
+    .dyn { grid-template-columns:1fr 1fr; } .dyn .card:first-child { grid-column:1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding-inline:16px; } nav.jump { margin-inline:-16px; padding-inline:16px; }
+    .prh { grid-template-columns:44px minmax(0,1fr) 20px; gap:10px; padding:12px; }
+    .prh .avc, .prh .rec2 { display:none; }
+    .rank { font-size:34px; }
+    .tn .mob { display:flex !important; gap:8px; align-items:center; margin-top:6px; }
+    .prc.open .prd { grid-template-columns:1fr; }
+    .news { grid-template-columns:1fr; } .nc.big { grid-column:auto; grid-row:auto; }
+    .awards { grid-template-columns:1fr 1fr; } .results { grid-template-columns:1fr; }
+    .trades { grid-template-columns:1fr; } .tr .sides { grid-template-columns:1fr; }
+    .gotw { grid-template-columns:1fr; padding-top:36px; } .vs { font-size:28px; }
+    .dyn { grid-template-columns:1fr; }
+    footer { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="ticker" id="ticker"><div class="ticker-track" id="tickerTrack"></div></div>
+<div class="wrap">
+  <header class="hero">
+    <span class="kicker" id="kicker">★ 2026 SEASON ★</span>
+    <h1 id="h1"></h1>
+    <div class="sub" id="sub"></div>
+    <div class="updated" id="updated"></div>
+  </header>
+
+  <nav class="jump"><div class="in" id="jump">
+    <a href="#thisweek">This Week</a><a href="#rankings">Power Rankings</a><a href="#weekly">Week by Week</a>
+    <a href="#results">Results Grid</a><a href="#standings">Standings</a><a href="#wire">The Wire</a><a href="#dynasty">Dynasty Stock</a>
+    <a href="#draftrace" id="navRace" hidden>Draft Order</a><a href="draft.html" class="arch" id="navArch" hidden>Draft Archive</a>
+  </div></nav>
+
+  <section id="thisweek">
+    <div class="sh"><h2 id="twTitle">Week Ahead</h2><span class="hint">// Game of the week and the full slate</span></div>
+    <div id="gotw"></div>
+    <div class="slate" id="slate"></div>
+  </section>
+
+  <section id="rankings">
+    <div class="sh"><h2>Power Rankings</h2><span class="hint">// Tap a team for its lineup and assets</span></div>
+    <div class="pr" id="pr"></div>
+  </section>
+
+  <section id="weekly">
+    <div class="sh"><h2>Week by Week</h2><span class="hint">// Headlines, awards and every result</span></div>
+    <div class="tabs" id="tabs"></div>
+    <div id="weekBody"></div>
+  </section>
+
+  <section id="results">
+    <div class="sh"><h2>Results Grid</h2><span class="hint">// Every team, every week</span></div>
+    <div class="card gridwrap"><table class="grid-t" id="gridT"></table></div>
+    <div class="legend">Each week shows points, then two results: the first is head to head, the second is against the league median. Hover a score to see the opponent.</div>
+  </section>
+
+  <section id="standings">
+    <div class="sh"><h2>Standings</h2><span class="hint" id="stHint"></span></div>
+    <div class="card gridwrap"><table class="st" id="stT"></table></div>
+    <div class="note">All-play is the record a team would have if it played every other team every week. Luck compares head to head wins with the all-play pace: positive means the schedule has been kind.</div>
+  </section>
+
+  <section id="wire">
+    <div class="sh"><h2>The Wire</h2><span class="hint" id="wireHint"></span></div>
+    <div class="news" id="twNews"></div>
+    <div id="twTrades"></div>
+    <div class="subh" id="injHead">Injury report for this week's lineups</div>
+    <div class="injg" id="inj"></div>
+  </section>
+
+  <section id="draftrace" hidden>
+    <div class="sh"><h2 id="raceTitle">Draft Order Race</h2><span class="hint" id="raceHint"></span></div>
+    <div class="card gridwrap"><table class="st" id="raceT"></table></div>
+    <div class="note">Standings for the rookie draft if the season ended today. Max points for is what each team's best possible lineup would have scored every week.</div>
+  </section>
+
+  <section id="dynasty">
+    <div class="sh"><h2>Dynasty Stock</h2><span class="hint" id="dynHint"></span></div>
+    <div class="dyn">
+      <div class="card"><div class="subh" style="margin-top:0">Roster value by team</div><div id="dynBars"></div></div>
+      <div class="card"><div class="subh" style="margin-top:0">Rising</div><div id="risers"></div></div>
+      <div class="card"><div class="subh" style="margin-top:0">Falling</div><div id="fallers"></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <h4>How the power rankings work</h4>
+      Each team gets a score out of 100. All-play win rate counts for 35 percent, points per game 25 percent, the last two weeks of scoring 15 percent,
+      and roster strength 25 percent. Roster strength is the FantasyCalc redraft value of each team's best healthy starting lineup.
+      Movement arrows compare against the rankings through the previous week.
+    </div>
+    <div>
+      <h4>Sources</h4>
+      Results, rosters, transactions and injuries come from Sleeper. Player and pick values come from FantasyCalc.
+      Headlines are generated from the data each time the page is rebuilt.
+      <span id="footArch" hidden><br/><a href="draft.html">See the draft day archive</a></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+const D = {"league": "Hot Steve and his Jigalos", "season": "2026", "title_lines": ["HOT STEVE", "& HIS JIGALOS"], "fc_label": "FantasyCalc one QB values", "archive": false, "draft_race": {"season": "2027", "rule": "Lowest max points for at season's end picks first", "rows": [{"pick": "1.01", "team": "Tony P Top / Pat Bottom", "maxpf": 335.5, "gap": 41.3, "owner": "Tony P Touched My PPR", "traded": true}, {"pick": "1.02", "team": "katzman696968", "maxpf": 376.8, "gap": 29.6, "owner": "Silence of the Lamb", "traded": true}, {"pick": "1.03", "team": "Ay Caramba", "maxpf": 406.4, "gap": 13.7, "owner": "Picken Up Da Huzz", "traded": true}, {"pick": "1.04", "team": "Tony P Touched My PPR", "maxpf": 420.1, "gap": 11.4, "owner": "Tony P Touched My PPR", "traded": false}, {"pick": "1.05", "team": "Picken Up Da Huzz", "maxpf": 431.5, "gap": 36.5, "owner": "katzman696968", "traded": true}, {"pick": "1.06", "team": "Weejtriots", "maxpf": 468.0, "gap": 1.2, "owner": "katzman696968", "traded": true}, {"pick": "1.07", "team": "Qsama bin Johnston", "maxpf": 469.2, "gap": 11.3, "owner": "Qsama bin Johnston", "traded": false}, {"pick": "1.08", "team": "fhmjr", "maxpf": 480.5, "gap": 8.3, "owner": "fhmjr", "traded": false}, {"pick": "1.09", "team": "Brock Hard Footballers", "maxpf": 488.8, "gap": 41.8, "owner": "Brock Hard Footballers", "traded": false}, {"pick": "1.10", "team": "Amon the edge of glory", "maxpf": 530.6, "gap": 3.6, "owner": "Amon the edge of glory", "traded": false}, {"pick": "1.11", "team": "Gibbs Me Shelter", "maxpf": 534.2, "gap": 20.9, "owner": "Gibbs Me Shelter", "traded": false}, {"pick": "1.12", "team": "Silence of the Lamb", "maxpf": 555.1, "gap": null, "owner": "Silence of the Lamb", "traded": false}]}, "avatars": {"Qsama bin Johnston": "https://sleepercdn.com/uploads/151d4049ae4b24fd838087ea77dc0862.jpg", "Brock Hard Footballers": "https://sleepercdn.com/avatars/thumbs/f418dc19d679a261da82373ed91dec02", "Weejtriots": "https://sleepercdn.com/avatars/thumbs/2b57ba5791aeb9b943ae130149d01aca", "Gibbs Me Shelter": "https://sleepercdn.com/uploads/1b373d13e920eec6c78b94408baa2be0.jpg", "Tony P Top / Pat Bottom": "https://sleepercdn.com/uploads/ff3ae599d9182b2c5dff86d6a893ee61.jpg", "Picken Up Da Huzz": "https://sleepercdn.com/uploads/bf2461ce4e24bb5cd7cb57530560a85e.jpg", "Tony P Touched My PPR": "https://sleepercdn.com/uploads/cfceff68ea0bc2164f3e8ac6c71cda6b.jpg", "Amon the edge of glory": "https://sleepercdn.com/avatars/thumbs/82aec8e811b839b8ec25d7b458afd57b", "fhmjr": "https://sleepercdn.com/avatars/thumbs/1aefabfa5b809f39930f5c30e4cb05de", "Silence of the Lamb": "https://sleepercdn.com/uploads/a9b85cca03b4c63ae2efc746c6517038.jpg", "Ay Caramba": "https://sleepercdn.com/uploads/cb085fca400f0873a64ccc6439d517b7.jpg", "katzman696968": "https://sleepercdn.com/avatars/thumbs/5efd5c7a00621ba44b2cbf1e1f4b6c59"}, "week": 4, "last_week": 3, "updated": "Wed Sep 30, 7:13 PM ET", "median": false, "power": [{"rank": 1, "move": 0, "team": "Silence of the Lamb", "owner": "parkergold11", "avatar": "https://sleepercdn.com/uploads/a9b85cca03b4c63ae2efc746c6517038.jpg", "w": 3, "l": 0, "pf": 508.3, "pa": 393.3, "maxpf": 555.1, "ap": "30-3", "ppg": 169.4, "score": 93.2, "streak": "W3", "weeks": [181.46, 136.02, 190.8], "results": ["W", "W", "W"], "blurb": "The team to beat at 3-0, with the best all-play mark in the league. Everyone else is playing for second.", "lineup": [{"name": "Geno Smith", "pos": "QB", "nfl": "NYJ", "inj": "", "value": 784}, {"name": "Jeremiyah Love", "pos": "RB", "nfl": "ARI", "inj": "", "value": 6889}, {"name": "Kenneth Walker", "pos": "RB", "nfl": "KC", "inj": "", "value": 6692}, {"name": "CeeDee Lamb", "pos": "WR", "nfl": "DAL", "inj": "", "value": 6197}, {"name": "Drake London", "pos": "WR", "nfl": "ATL", "inj": "", "value": 5214}, {"name": "Juwan Johnson", "pos": "TE", "nfl": "NO", "inj": "", "value": 1561}, {"name": "Michael Wilson", "pos": "WR", "nfl": "ARI", "inj": "", "value": 2232}, {"name": "Jacory Croskey-Merritt", "pos": "RB", "nfl": "WAS", "inj": "", "value": 1445}, {"name": "Spencer Shrader", "pos": "K", "nfl": "IND", "inj": "", "value": 0}, {"name": "MIN D/ST", "pos": "DEF", "nfl": "MIN", "inj": "", "value": 0}], "dynasty": 53127, "assets": [{"name": "Jeremiyah Love", "pos": "RB", "value": 6889}, {"name": "Kenneth Walker", "pos": "RB", "value": 6692}, {"name": "CeeDee Lamb", "pos": "WR", "value": 6197}], "sleeper_record": "3-0"}, {"rank": 2, "move": 0, "team": "Gibbs Me Shelter", "owner": "jkahle", "avatar": "https://sleepercdn.com/uploads/1b373d13e920eec6c78b94408baa2be0.jpg", "w": 2, "l": 1, "pf": 486.2, "pa": 392.1, "maxpf": 534.2, "ap": "28-5", "ppg": 162.1, "score": 87.9, "streak": "L1", "weeks": [151.06, 175.62, 159.56], "results": ["W", "W", "L"], "blurb": "Dropped one to Silence of the Lamb despite 159.6 points. Jahmyr Gibbs (41.4) deserved better company.", "lineup": [{"name": "Josh Allen", "pos": "QB", "nfl": "BUF", "inj": "", "value": 5715}, {"name": "Jahmyr Gibbs", "pos": "RB", "nfl": "DET", "inj": "", "value": 11315}, {"name": "James Cook", "pos": "RB", "nfl": "BUF", "inj": "", "value": 5656}, {"name": "Emeka Egbuka", "pos": "WR", "nfl": "TB", "inj": "", "value": 3241}, {"name": "Denzel Boston", "pos": "WR", "nfl": "CLE", "inj": "", "value": 2225}, {"name": "Jake Ferguson", "pos": "TE", "nfl": "DAL", "inj": "", "value": 1530}, {"name": "Javonte Williams", "pos": "RB", "nfl": "DAL", "inj": "", "value": 3546}, {"name": "Deebo Samuel", "pos": "WR", "nfl": "SF", "inj": "", "value": 1346}, {"name": "Harrison Butker", "pos": "K", "nfl": "KC", "inj": "", "value": 0}, {"name": "HOU D/ST", "pos": "DEF", "nfl": "HOU", "inj": "", "value": 0}], "dynasty": 46668, "assets": [{"name": "Jahmyr Gibbs", "pos": "RB", "value": 11315}, {"name": "Josh Allen", "pos": "QB", "value": 5715}, {"name": "James Cook", "pos": "RB", "value": 5656}], "sleeper_record": "2-1"}, {"rank": 3, "move": 1, "team": "Brock Hard Footballers", "owner": "tonydoesntknowball", "avatar": "https://sleepercdn.com/avatars/thumbs/f418dc19d679a261da82373ed91dec02", "w": 2, "l": 1, "pf": 425.5, "pa": 354.5, "maxpf": 488.8, "ap": "25-8", "ppg": 141.8, "score": 79.1, "streak": "W1", "weeks": [159.76, 127.12, 138.64], "results": ["W", "L", "W"], "blurb": "Left 49.0 points on the bench in Week 3, including Joe Burrow (22.6). Lineup decisions are a choice.", "lineup": [{"name": "C.J. Stroud", "pos": "QB", "nfl": "HOU", "inj": "", "value": 1623}, {"name": "Christian McCaffrey", "pos": "RB", "nfl": "SF", "inj": "", "value": 4678}, {"name": "Bucky Irving", "pos": "RB", "nfl": "TB", "inj": "Questionable", "value": 3479}, {"name": "Jaxon Smith-Njigba", "pos": "WR", "nfl": "SEA", "inj": "", "value": 9602}, {"name": "Nico Collins", "pos": "WR", "nfl": "HOU", "inj": "Questionable", "value": 4101}, {"name": "Brock Bowers", "pos": "TE", "nfl": "LV", "inj": "", "value": 6538}, {"name": "Luther Burden", "pos": "WR", "nfl": "CHI", "inj": "", "value": 2958}, {"name": "Chase Brown", "pos": "RB", "nfl": "CIN", "inj": "", "value": 4415}, {"name": "Ka'imi Fairbairn", "pos": "K", "nfl": "HOU", "inj": "", "value": 0}, {"name": "KC D/ST", "pos": "DEF", "nfl": "KC", "inj": "", "value": 0}], "dynasty": 48637, "assets": [{"name": "Jaxon Smith-Njigba", "pos": "WR", "value": 9602}, {"name": "Brock Bowers", "pos": "TE", "value": 6538}, {"name": "Christian McCaffrey", "pos": "RB", "value": 4678}], "sleeper_record": "2-1"}, {"rank": 4, "move": -1, "team": "Amon the edge of glory", "owner": "rdant22", "avatar": "https://sleepercdn.com/avatars/thumbs/82aec8e811b839b8ec25d7b458afd57b", "w": 3, "l": 0, "pf": 446.7, "pa": 342.7, "maxpf": 530.6, "ap": "25-8", "ppg": 148.9, "score": 73.8, "streak": "W3", "weeks": [153.74, 168.34, 124.66], "results": ["W", "W", "W"], "blurb": "Still perfect at 3-0. Christian Watson put up 22.6 last week, and nobody has solved this roster yet.", "lineup": [{"name": "Jared Goff", "pos": "QB", "nfl": "DET", "inj": "", "value": 1869}, {"name": "Braelon Allen", "pos": "RB", "nfl": "NYJ", "inj": "", "value": 1503}, {"name": "D'Andre Swift", "pos": "RB", "nfl": "CHI", "inj": "", "value": 3191}, {"name": "Amon-Ra St. Brown", "pos": "WR", "nfl": "DET", "inj": "", "value": 7317}, {"name": "DeVonta Smith", "pos": "WR", "nfl": "PHI", "inj": "", "value": 3506}, {"name": "Harold Fannin", "pos": "TE", "nfl": "CLE", "inj": "", "value": 2482}, {"name": "Parker Washington", "pos": "WR", "nfl": "JAX", "inj": "", "value": 3950}, {"name": "Christian Watson", "pos": "WR", "nfl": "GB", "inj": "", "value": 3082}, {"name": "Jason Myers", "pos": "K", "nfl": "SEA", "inj": "", "value": 0}, {"name": "LAR D/ST", "pos": "DEF", "nfl": "LAR", "inj": "", "value": 0}], "dynasty": 48698, "assets": [{"name": "Amon-Ra St. Brown", "pos": "WR", "value": 7317}, {"name": "Omarion Hampton", "pos": "RB", "value": 4440}, {"name": "Parker Washington", "pos": "WR", "value": 3950}], "sleeper_record": "3-0"}, {"rank": 5, "move": 0, "team": "fhmjr", "owner": "fhmjr", "avatar": "https://sleepercdn.com/avatars/thumbs/1aefabfa5b809f39930f5c30e4cb05de", "w": 2, "l": 1, "pf": 408.6, "pa": 394.5, "maxpf": 480.5, "ap": "22-11", "ppg": 136.2, "score": 65.6, "streak": "L1", "weeks": [151.82, 148.22, 108.56], "results": ["W", "W", "L"], "blurb": "Dropped one to Weejtriots despite 108.6 points. Ja'Marr Chase (24.8) deserved better company.", "lineup": [{"name": "Matthew Stafford", "pos": "QB", "nfl": "LAR", "inj": "", "value": 1350}, {"name": "Ashton Jeanty", "pos": "RB", "nfl": "LV", "inj": "", "value": 6723}, {"name": "Aaron Jones", "pos": "RB", "nfl": "MIN", "inj": "", "value": 1485}, {"name": "Ja'Marr Chase", "pos": "WR", "nfl": "CIN", "inj": "", "value": 8792}, {"name": "Chris Olave", "pos": "WR", "nfl": "NO", "inj": "", "value": 5005}, {"name": "Trey McBride", "pos": "TE", "nfl": "ARI", "inj": "", "value": 6042}, {"name": "Jaylen Waddle", "pos": "WR", "nfl": "DEN", "inj": "", "value": 2601}, {"name": "Devaughn Vele", "pos": "WR", "nfl": "NO", "inj": "", "value": 1188}, {"name": "Evan McPherson", "pos": "K", "nfl": "CIN", "inj": "", "value": 0}, {"name": "GB D/ST", "pos": "DEF", "nfl": "GB", "inj": "", "value": 0}], "dynasty": 48166, "assets": [{"name": "Ja'Marr Chase", "pos": "WR", "value": 8792}, {"name": "Ashton Jeanty", "pos": "RB", "value": 6723}, {"name": "Trey McBride", "pos": "TE", "value": 6042}], "sleeper_record": "2-1"}, {"rank": 6, "move": 1, "team": "Weejtriots", "owner": "theinevitableouija", "avatar": "https://sleepercdn.com/avatars/thumbs/2b57ba5791aeb9b943ae130149d01aca", "w": 1, "l": 2, "pf": 364.8, "pa": 404.3, "maxpf": 468.0, "ap": "16-17", "ppg": 121.6, "score": 46.7, "streak": "W1", "weeks": [96.44, 124.38, 143.94], "results": ["L", "L", "W"], "blurb": "Took care of fhmjr with 143.9. Garrett Wilson (26.7) did the heavy lifting.", "lineup": [{"name": "Patrick Mahomes", "pos": "QB", "nfl": "KC", "inj": "", "value": 2937}, {"name": "Tony Pollard", "pos": "RB", "nfl": "TEN", "inj": "Questionable", "value": 1531}, {"name": "Zay Flowers", "pos": "WR", "nfl": "BAL", "inj": "Questionable", "value": 4225}, {"name": "Garrett Wilson", "pos": "WR", "nfl": "NYJ", "inj": "", "value": 4286}, {"name": "George Kittle", "pos": "TE", "nfl": "SF", "inj": "", "value": 2006}, {"name": "Rhamondre Stevenson", "pos": "RB", "nfl": "NE", "inj": "", "value": 1421}, {"name": "Jakobi Meyers", "pos": "WR", "nfl": "JAX", "inj": "Questionable", "value": 1327}, {"name": "Matt Gay", "pos": "K", "nfl": "LV", "inj": "", "value": 0}, {"name": "SEA D/ST", "pos": "DEF", "nfl": "SEA", "inj": "", "value": 0}], "dynasty": 42032, "assets": [{"name": "De'Von Achane", "pos": "RB", "value": 4459}, {"name": "Garrett Wilson", "pos": "WR", "value": 4286}, {"name": "Zay Flowers", "pos": "WR", "value": 4225}], "sleeper_record": "1-2"}, {"rank": 7, "move": -1, "team": "Qsama bin Johnston", "owner": "shanereichert", "avatar": "https://sleepercdn.com/uploads/151d4049ae4b24fd838087ea77dc0862.jpg", "w": 1, "l": 2, "pf": 352.1, "pa": 366.7, "maxpf": 469.2, "ap": "14-19", "ppg": 117.4, "score": 41.2, "streak": "W1", "weeks": [139.92, 80.96, 131.24], "results": ["L", "L", "W"], "blurb": "Left 30.7 points on the bench in Week 3, including Brock Purdy (31.3). Lineup decisions are a choice.", "lineup": [{"name": "Bryce Young", "pos": "QB", "nfl": "CAR", "inj": "", "value": 1898}, {"name": "Bijan Robinson", "pos": "RB", "nfl": "ATL", "inj": "", "value": 10741}, {"name": "Cam Skattebo", "pos": "RB", "nfl": "NYG", "inj": "", "value": 3285}, {"name": "Rashee Rice", "pos": "WR", "nfl": "KC", "inj": "", "value": 3061}, {"name": "Malik Nabers", "pos": "WR", "nfl": "NYG", "inj": "", "value": 4916}, {"name": "Sam LaPorta", "pos": "TE", "nfl": "DET", "inj": "", "value": 2658}, {"name": "Ladd McConkey", "pos": "WR", "nfl": "LAC", "inj": "Questionable", "value": 3282}, {"name": "Bhayshul Tuten", "pos": "RB", "nfl": "JAX", "inj": "", "value": 3055}, {"name": "Cameron Dicker", "pos": "K", "nfl": "LAC", "inj": "", "value": 0}, {"name": "JAX D/ST", "pos": "DEF", "nfl": "JAX", "inj": "", "value": 0}], "dynasty": 58785, "assets": [{"name": "Bijan Robinson", "pos": "RB", "value": 10741}, {"name": "Malik Nabers", "pos": "WR", "value": 4916}, {"name": "Colston Loveland", "pos": "TE", "value": 3304}], "sleeper_record": "1-2"}, {"rank": 8, "move": 0, "team": "Picken Up Da Huzz", "owner": "tbaldwin8", "avatar": "https://sleepercdn.com/uploads/bf2461ce4e24bb5cd7cb57530560a85e.jpg", "w": 0, "l": 3, "pf": 330.7, "pa": 438.0, "maxpf": 431.5, "ap": "11-22", "ppg": 110.2, "score": 31.0, "streak": "L3", "weeks": [112.1, 111.16, 107.44], "results": ["L", "L", "L"], "blurb": "Winless at 0-3. The good news: Tee Higgins scored 21.0. The bad news: everyone else.", "lineup": [{"name": "Dak Prescott", "pos": "QB", "nfl": "DAL", "inj": "", "value": 2140}, {"name": "Jonathan Taylor", "pos": "RB", "nfl": "IND", "inj": "", "value": 6178}, {"name": "Jaylen Warren", "pos": "RB", "nfl": "PIT", "inj": "", "value": 2299}, {"name": "George Pickens", "pos": "WR", "nfl": "DAL", "inj": "", "value": 4036}, {"name": "Tee Higgins", "pos": "WR", "nfl": "CIN", "inj": "", "value": 3032}, {"name": "Tyler Higbee", "pos": "TE", "nfl": "LAR", "inj": "", "value": 150}, {"name": "Matthew Golden", "pos": "WR", "nfl": "GB", "inj": "", "value": 2740}, {"name": "Kalif Raymond", "pos": "WR", "nfl": "CHI", "inj": "", "value": 1015}, {"name": "Cairo Santos", "pos": "K", "nfl": "CHI", "inj": "", "value": 0}, {"name": "PIT D/ST", "pos": "DEF", "nfl": "PIT", "inj": "", "value": 0}], "dynasty": 33908, "assets": [{"name": "Jonathan Taylor", "pos": "RB", "value": 6178}, {"name": "George Pickens", "pos": "WR", "value": 4036}, {"name": "Tee Higgins", "pos": "WR", "value": 3032}], "sleeper_record": "0-3"}, {"rank": 9, "move": 0, "team": "Ay Caramba", "owner": "br5219", "avatar": "https://sleepercdn.com/uploads/cb085fca400f0873a64ccc6439d517b7.jpg", "w": 1, "l": 2, "pf": 313.3, "pa": 340.2, "maxpf": 406.4, "ap": "9-24", "ppg": 104.4, "score": 25.8, "streak": "L1", "weeks": [136.26, 85.4, 91.64], "results": ["L", "W", "L"], "blurb": "Left 31.5 points on the bench in Week 3, including Jordan Addison (20.0). Lineup decisions are a choice.", "lineup": [{"name": "Lamar Jackson", "pos": "QB", "nfl": "BAL", "inj": "Questionable", "value": 3750}, {"name": "Derrick Henry", "pos": "RB", "nfl": "BAL", "inj": "", "value": 3977}, {"name": "David Montgomery", "pos": "RB", "nfl": "HOU", "inj": "", "value": 2216}, {"name": "Puka Nacua", "pos": "WR", "nfl": "LAR", "inj": "Questionable", "value": 7161}, {"name": "Jordan Addison", "pos": "WR", "nfl": "MIN", "inj": "", "value": 1909}, {"name": "Tyler Warren", "pos": "TE", "nfl": "IND", "inj": "", "value": 3386}, {"name": "Courtland Sutton", "pos": "WR", "nfl": "DEN", "inj": "", "value": 1256}, {"name": "Xavier Worthy", "pos": "WR", "nfl": "KC", "inj": "", "value": 1452}, {"name": "Jake Bates", "pos": "K", "nfl": "DET", "inj": "", "value": 0}, {"name": "CHI D/ST", "pos": "DEF", "nfl": "CHI", "inj": "", "value": 0}], "dynasty": 38496, "assets": [{"name": "Puka Nacua", "pos": "WR", "value": 7161}, {"name": "Derrick Henry", "pos": "RB", "value": 3977}, {"name": "Lamar Jackson", "pos": "QB", "value": 3750}], "sleeper_record": "1-2"}, {"rank": 10, "move": 0, "team": "Tony P Touched My PPR", "owner": "patrickoleary1", "avatar": "https://sleepercdn.com/uploads/cfceff68ea0bc2164f3e8ac6c71cda6b.jpg", "w": 1, "l": 2, "pf": 305.5, "pa": 410.5, "maxpf": 420.1, "ap": "8-25", "ppg": 101.8, "score": 18.8, "streak": "W1", "weeks": [109.34, 114.32, 81.8], "results": ["L", "L", "W"], "blurb": "Left 60.1 points on the bench in Week 3, including Bo Nix (24.1). Lineup decisions are a choice.", "lineup": [{"name": "Shedeur Sanders", "pos": "QB", "nfl": "CLE", "inj": "", "value": 484}, {"name": "Breece Hall", "pos": "RB", "nfl": "NYJ", "inj": "Doubtful", "value": 3920}, {"name": "Rashod Bateman", "pos": "WR", "nfl": "BAL", "inj": "", "value": 980}, {"name": "Jameson Williams", "pos": "WR", "nfl": "DET", "inj": "", "value": 2198}, {"name": "Dalton Schultz", "pos": "TE", "nfl": "HOU", "inj": "", "value": 1283}, {"name": "Chuba Hubbard", "pos": "RB", "nfl": "CAR", "inj": "", "value": 2832}, {"name": "Josh Downs", "pos": "WR", "nfl": "IND", "inj": "", "value": 2032}, {"name": "Will Reichard", "pos": "K", "nfl": "MIN", "inj": "", "value": 0}, {"name": "DEN D/ST", "pos": "DEF", "nfl": "DEN", "inj": "", "value": 0}], "dynasty": 33327, "assets": [{"name": "Breece Hall", "pos": "RB", "value": 3920}, {"name": "Kyren Williams", "pos": "RB", "value": 3568}, {"name": "Chuba Hubbard", "pos": "RB", "value": 2832}], "sleeper_record": "1-2"}, {"rank": 11, "move": 0, "team": "katzman696968", "owner": "katzman696968", "avatar": "https://sleepercdn.com/avatars/thumbs/5efd5c7a00621ba44b2cbf1e1f4b6c59", "w": 1, "l": 2, "pf": 283.0, "pa": 279.3, "maxpf": 376.8, "ap": "5-28", "ppg": 94.3, "score": 7.6, "streak": "L2", "weeks": [138.46, 63.68, 80.84], "results": ["W", "L", "L"], "blurb": "Dropped one to Tony P Touched My PPR despite 80.8 points. Justin Herbert (12.7) deserved better company.", "lineup": [{"name": "Justin Herbert", "pos": "QB", "nfl": "LAC", "inj": "", "value": 2232}, {"name": "Blake Corum", "pos": "RB", "nfl": "LAR", "inj": "", "value": 1707}, {"name": "Justin Jefferson", "pos": "WR", "nfl": "MIN", "inj": "Questionable", "value": 6098}, {"name": "Tetairoa McMillan", "pos": "WR", "nfl": "CAR", "inj": "", "value": 3877}, {"name": "Tucker Kraft", "pos": "TE", "nfl": "GB", "inj": "", "value": 2506}, {"name": "DJ Moore", "pos": "WR", "nfl": "BUF", "inj": "Questionable", "value": 2410}, {"name": "Mike Evans", "pos": "WR", "nfl": "SF", "inj": "Questionable", "value": 1693}, {"name": "Tyler Loop", "pos": "K", "nfl": "BAL", "inj": "", "value": 0}, {"name": "BAL D/ST", "pos": "DEF", "nfl": "BAL", "inj": "", "value": 0}], "dynasty": 33276, "assets": [{"name": "Justin Jefferson", "pos": "WR", "value": 6098}, {"name": "Tetairoa McMillan", "pos": "WR", "value": 3877}, {"name": "Tucker Kraft", "pos": "TE", "value": 2506}], "sleeper_record": "1-2"}, {"rank": 12, "move": 0, "team": "Tony P Top / Pat Bottom", "owner": "steveg1313", "avatar": "https://sleepercdn.com/uploads/ff3ae599d9182b2c5dff86d6a893ee61.jpg", "w": 1, "l": 2, "pf": 262.2, "pa": 370.7, "maxpf": 335.5, "ap": "5-28", "ppg": 87.4, "score": 3.4, "streak": "L1", "weeks": [74.22, 105.5, 82.46], "results": ["L", "W", "L"], "blurb": "Left 39.0 points on the bench in Week 3, including Sam Darnold (27.7). Lineup decisions are a choice.", "lineup": [{"name": "Daniel Jones", "pos": "QB", "nfl": "IND", "inj": "", "value": 1000}, {"name": "Quinshon Judkins", "pos": "RB", "nfl": "CLE", "inj": "", "value": 2910}, {"name": "Alvin Kamara", "pos": "RB", "nfl": "NO", "inj": "", "value": 1133}, {"name": "Stefon Diggs", "pos": "WR", "nfl": "WAS", "inj": "", "value": 1423}, {"name": "DK Metcalf", "pos": "WR", "nfl": "PIT", "inj": "", "value": 1576}, {"name": "Dalton Kincaid", "pos": "TE", "nfl": "BUF", "inj": "", "value": 2563}, {"name": "Carnell Tate", "pos": "WR", "nfl": "TEN", "inj": "", "value": 2917}, {"name": "RJ Harvey", "pos": "RB", "nfl": "DEN", "inj": "", "value": 1844}, {"name": "Brandon Aubrey", "pos": "K", "nfl": "DAL", "inj": "", "value": 0}, {"name": "SF D/ST", "pos": "DEF", "nfl": "SF", "inj": "", "value": 0}], "dynasty": 31204, "assets": [{"name": "Carnell Tate", "pos": "WR", "value": 2917}, {"name": "Quinshon Judkins", "pos": "RB", "value": 2910}, {"name": "Jadarian Price", "pos": "RB", "value": 2839}], "sleeper_record": "1-2"}], "standings": [{"team": "Silence of the Lamb", "owner": "parkergold11", "w": 3, "l": 0, "pf": 508.3, "pa": 393.3, "maxpf": 555.1, "ap": "30-3", "streak": "W3", "rank": 1}, {"team": "Amon the edge of glory", "owner": "rdant22", "w": 3, "l": 0, "pf": 446.7, "pa": 342.7, "maxpf": 530.6, "ap": "25-8", "streak": "W3", "rank": 4}, {"team": "Gibbs Me Shelter", "owner": "jkahle", "w": 2, "l": 1, "pf": 486.2, "pa": 392.1, "maxpf": 534.2, "ap": "28-5", "streak": "L1", "rank": 2}, {"team": "Brock Hard Footballers", "owner": "tonydoesntknowball", "w": 2, "l": 1, "pf": 425.5, "pa": 354.5, "maxpf": 488.8, "ap": "25-8", "streak": "W1", "rank": 3}, {"team": "fhmjr", "owner": "fhmjr", "w": 2, "l": 1, "pf": 408.6, "pa": 394.5, "maxpf": 480.5, "ap": "22-11", "streak": "L1", "rank": 5}, {"team": "Weejtriots", "owner": "theinevitableouija", "w": 1, "l": 2, "pf": 364.8, "pa": 404.3, "maxpf": 468.0, "ap": "16-17", "streak": "W1", "rank": 6}, {"team": "Qsama bin Johnston", "owner": "shanereichert", "w": 1, "l": 2, "pf": 352.1, "pa": 366.7, "maxpf": 469.2, "ap": "14-19", "streak": "W1", "rank": 7}, {"team": "Ay Caramba", "owner": "br5219", "w": 1, "l": 2, "pf": 313.3, "pa": 340.2, "maxpf": 406.4, "ap": "9-24", "streak": "L1", "rank": 9}, {"team": "Tony P Touched My PPR", "owner": "patrickoleary1", "w": 1, "l": 2, "pf": 305.5, "pa": 410.5, "maxpf": 420.1, "ap": "8-25", "streak": "W1", "rank": 10}, {"team": "katzman696968", "owner": "katzman696968", "w": 1, "l": 2, "pf": 283.0, "pa": 279.3, "maxpf": 376.8, "ap": "5-28", "streak": "L2", "rank": 11}, {"team": "Tony P Top / Pat Bottom", "owner": "steveg1313", "w": 1, "l": 2, "pf": 262.2, "pa": 370.7, "maxpf": 335.5, "ap": "5-28", "streak": "L1", "rank": 12}, {"team": "Picken Up Da Huzz", "owner": "tbaldwin8", "w": 0, "l": 3, "pf": 330.7, "pa": 438.0, "maxpf": 431.5, "ap": "11-22", "streak": "L3", "rank": 8}], "weeks": [{"week": 3, "recap": [{"w": "Silence of the Lamb", "wp": 190.8, "l": "Gibbs Me Shelter", "lp": 159.56, "margin": 31.24, "wstar": ["Drake London", 28.4, "WR"], "lstar": ["Jahmyr Gibbs", 41.4, "RB"], "wmed": null, "lmed": null}, {"w": "Weejtriots", "wp": 143.94, "l": "fhmjr", "lp": 108.56, "margin": 35.38, "wstar": ["Garrett Wilson", 26.7, "WR"], "lstar": ["Ja'Marr Chase", 24.8, "WR"], "wmed": null, "lmed": null}, {"w": "Brock Hard Footballers", "wp": 138.64, "l": "Tony P Top / Pat Bottom", "lp": 82.46, "margin": 56.18, "wstar": ["Jaxon Smith-Njigba", 35.36, "WR"], "lstar": ["Deshaun Watson", 20.26, "QB"], "wmed": null, "lmed": null}, {"w": "Qsama bin Johnston", "wp": 131.24, "l": "Picken Up Da Huzz", "lp": 107.44, "margin": 23.8, "wstar": ["Bijan Robinson", 35.3, "RB"], "lstar": ["Tee Higgins", 21.0, "WR"], "wmed": null, "lmed": null}, {"w": "Amon the edge of glory", "wp": 124.66, "l": "Ay Caramba", "lp": 91.64, "margin": 33.02, "wstar": ["Christian Watson", 22.6, "WR"], "lstar": ["Derrick Henry", 21.9, "RB"], "wmed": null, "lmed": null}, {"w": "Tony P Touched My PPR", "wp": 81.8, "l": "katzman696968", "lp": 80.84, "margin": 0.96, "wstar": ["Will Reichard", 16.0, "K"], "lstar": ["Justin Herbert", 12.74, "QB"], "wmed": null, "lmed": null}], "awards": {"top": {"team": "Silence of the Lamb", "pts": 190.8}, "low": {"team": "katzman696968", "pts": 80.84}, "blowout": {"w": "Brock Hard Footballers", "wp": 138.64, "l": "Tony P Top / Pat Bottom", "lp": 82.46, "margin": 56.18, "wstar": ["Jaxon Smith-Njigba", 35.36, "WR"], "lstar": ["Deshaun Watson", 20.26, "QB"], "wmed": null, "lmed": null}, "close": {"w": "Tony P Touched My PPR", "wp": 81.8, "l": "katzman696968", "lp": 80.84, "margin": 0.96, "wstar": ["Will Reichard", 16.0, "K"], "lstar": ["Justin Herbert", 12.74, "QB"], "wmed": null, "lmed": null}, "bench": {"team": "Tony P Touched My PPR", "left": 60.14, "player": ["Bo Nix", 24.14]}, "heart": {"team": "Gibbs Me Shelter", "pts": 159.56, "beats": 10}, "mvp": {"player": "Jahmyr Gibbs", "pts": 41.4, "pos": "RB", "team": "Gibbs Me Shelter"}, "median": 116.61}, "headlines": [{"tag": "Week 3", "big": true, "title": "Silence of the Lamb drops 190.8, the best score of the week", "body": "Drake London led the way with 28.4. The league average was 120.1."}, {"tag": "Blowout", "title": "Brock Hard Footballers flattens Tony P Top / Pat Bottom by 56.2", "body": "Final: 138.6 to 82.5. Jaxon Smith-Njigba scored 35.4 and this one was over early."}, {"tag": "Nail biter", "title": "Tony P Touched My PPR survives katzman696968 by 0.96", "body": "81.80 to 80.84. One more catch from anyone on the losing side and this headline flips."}, {"tag": "Bench blunder", "title": "Tony P Touched My PPR leaves 60.1 points on the pine", "body": "Bo Nix scored 24.1 from the bench. The optimal lineup was right there."}, {"tag": "Heartbreak", "title": "Gibbs Me Shelter scores 159.6 and still loses", "body": "That total beat 10 of the other 11 teams. It did not beat the one team that mattered."}, {"tag": "Player of the week", "title": "Jahmyr Gibbs goes off for 41.4", "body": "The top individual score in any starting lineup, courtesy of Gibbs Me Shelter."}, {"tag": "Trade", "title": "Brock Hard Footballers and Weejtriots make a deal", "body": "Brock Hard Footballers gets 2027 Round 3. Weejtriots gets Malik Washington. Dead even on paper."}, {"tag": "Trade", "title": "Weejtriots and katzman696968 make a deal", "body": "Weejtriots gets Saquon Barkley. katzman696968 gets 2027 Round 1. FantasyCalc gives the edge to Weejtriots by 1,080."}, {"tag": "Trade", "title": "Brock Hard Footballers and Weejtriots make a deal", "body": "Brock Hard Footballers gets Chase Brown, 2028 Round 2. Weejtriots gets Zay Flowers, Tony Pollard. Dead even on paper."}, {"tag": "Trade", "title": "Weejtriots and Tony P Touched My PPR make a deal", "body": "Weejtriots gets Rhamondre Stevenson. Tony P Touched My PPR gets 2027 Round 2. Dead even on paper."}, {"tag": "Trade", "title": "Picken Up Da Huzz and Silence of the Lamb make a deal", "body": "Picken Up Da Huzz gets 2027 Round 1. Silence of the Lamb gets Michael Wilson, Alec Pierce. FantasyCalc gives the edge to Silence of the Lamb by 1,161."}, {"tag": "Trade", "title": "Weejtriots and Picken Up Da Huzz make a deal", "body": "Weejtriots gets Patrick Mahomes. Picken Up Da Huzz gets Matthew Golden. FantasyCalc gives the edge to Weejtriots by 197."}, {"tag": "Waiver wire", "title": "Silence of the Lamb scoops up Terrance Ferguson", "body": "The most valuable pickup of Week 3 at 1,423 dynasty points."}], "trades": [{"when": "Mon Sep 28", "ts": 1790631132993, "sides": [{"team": "Brock Hard Footballers", "owner": "tonydoesntknowball", "gets": [{"name": "2027 Round 3", "pos": "PICK", "nfl": "via Weejtriots", "value": 994}], "value": 994}, {"team": "Weejtriots", "owner": "theinevitableouija", "gets": [{"name": "Malik Washington", "pos": "WR", "nfl": "MIA", "value": 1118}], "value": 1118}]}, {"when": "Mon Sep 28", "ts": 1790630725437, "sides": [{"team": "Weejtriots", "owner": "theinevitableouija", "gets": [{"name": "Saquon Barkley", "pos": "RB", "nfl": "PHI", "value": 3801}], "value": 3801}, {"team": "katzman696968", "owner": "katzman696968", "gets": [{"name": "2027 Round 1", "pos": "PICK", "nfl": "via Weejtriots", "value": 2721}], "value": 2721}]}, {"when": "Fri Sep 25", "ts": 1790375531529, "sides": [{"team": "Brock Hard Footballers", "owner": "tonydoesntknowball", "gets": [{"name": "Chase Brown", "pos": "RB", "nfl": "CIN", "value": 4415}, {"name": "2028 Round 2", "pos": "PICK", "nfl": "via Weejtriots", "value": 1199}], "value": 5614}, {"team": "Weejtriots", "owner": "theinevitableouija", "gets": [{"name": "Zay Flowers", "pos": "WR", "nfl": "BAL", "value": 4225}, {"name": "Tony Pollard", "pos": "RB", "nfl": "TEN", "value": 1531}], "value": 5756}]}, {"when": "Thu Sep 24", "ts": 1790273299190, "sides": [{"team": "Weejtriots", "owner": "theinevitableouija", "gets": [{"name": "Rhamondre Stevenson", "pos": "RB", "nfl": "NE", "value": 1421}], "value": 1421}, {"team": "Tony P Touched My PPR", "owner": "patrickoleary1", "gets": [{"name": "2027 Round 2", "pos": "PICK", "nfl": "via Weejtriots", "value": 1436}], "value": 1436}]}, {"when": "Thu Sep 24", "ts": 1790269111981, "sides": [{"team": "Picken Up Da Huzz", "owner": "tbaldwin8", "gets": [{"name": "2027 Round 1", "pos": "PICK", "nfl": "via Ay Caramba", "value": 2721}], "value": 2721}, {"team": "Silence of the Lamb", "owner": "parkergold11", "gets": [{"name": "Michael Wilson", "pos": "WR", "nfl": "ARI", "value": 2232}, {"name": "Alec Pierce", "pos": "WR", "nfl": "IND", "value": 1650}], "value": 3882}]}, {"when": "Wed Sep 23", "ts": 1790167179778, "sides": [{"team": "Weejtriots", "owner": "theinevitableouija", "gets": [{"name": "Patrick Mahomes", "pos": "QB", "nfl": "KC", "value": 2937}], "value": 2937}, {"team": "Picken Up Da Huzz", "owner": "tbaldwin8", "gets": [{"name": "Matthew Golden", "pos": "WR", "nfl": "GB", "value": 2740}], "value": 2740}]}], "adds": [{"when": "Fri Sep 25", "ts": 1790386346608, "team": "Silence of the Lamb", "player": "Terrance Ferguson", "pos": "TE", "nfl": "LAR", "bid": null, "type": "Free agent", "value": 1423, "dropped": ["Gunnar Helm"]}, {"when": "Sun Sep 27", "ts": 1790511936484, "team": "Picken Up Da Huzz", "player": "Tyreek Hill", "pos": "WR", "nfl": "FA", "bid": null, "type": "Free agent", "value": 1064, "dropped": []}, {"when": "Thu Sep 24", "ts": 1790286410250, "team": "Tony P Top / Pat Bottom", "player": "Keenan Allen", "pos": "WR", "nfl": "IND", "bid": null, "type": "Waiver", "value": 874, "dropped": ["George Holani"]}, {"when": "Wed Sep 23", "ts": 1790165610724, "team": "Weejtriots", "player": "Kirk Cousins", "pos": "QB", "nfl": "LV", "bid": null, "type": "Free agent", "value": 825, "dropped": ["Aaron Rodgers"]}, {"when": "Mon Sep 28", "ts": 1790633564507, "team": "Gibbs Me Shelter", "player": "Chig Okonkwo", "pos": "TE", "nfl": "WAS", "bid": null, "type": "Waiver", "value": 822, "dropped": []}, {"when": "Wed Sep 23", "ts": 1790172569050, "team": "Amon the edge of glory", "player": "Jacoby Brissett", "pos": "QB", "nfl": "ARI", "bid": null, "type": "Waiver", "value": 774, "dropped": ["Michael Mayer"]}, {"when": "Wed Sep 23", "ts": 1790167525221, "team": "Tony P Top / Pat Bottom", "player": "Deshaun Watson", "pos": "QB", "nfl": "CLE", "bid": null, "type": "Free agent", "value": 757, "dropped": ["Travis Hunter"]}, {"when": "Tue Sep 29", "ts": 1790687151082, "team": "Amon the edge of glory", "player": "Kendre Miller", "pos": "RB", "nfl": "NO", "bid": null, "type": "Waiver", "value": 751, "dropped": []}, {"when": "Wed Sep 23", "ts": 1790166470610, "team": "Weejtriots", "player": "Marcus Mariota", "pos": "QB", "nfl": "WAS", "bid": null, "type": "Free agent", "value": 579, "dropped": []}, {"when": "Sun Sep 27", "ts": 1790565063480, "team": "Weejtriots", "player": "Mack Hollins", "pos": "WR", "nfl": "NE", "bid": null, "type": "Waiver", "value": 437, "dropped": []}]}, {"week": 2, "recap": [{"w": "Gibbs Me Shelter", "wp": 175.62, "l": "Brock Hard Footballers", "lp": 127.12, "margin": 48.5, "wstar": ["Josh Allen", 40.82, "QB"], "lstar": ["Jaxon Smith-Njigba", 42.5, "WR"], "wmed": null, "lmed": null}, {"w": "Amon the edge of glory", "wp": 168.34, "l": "Picken Up Da Huzz", "lp": 111.16, "margin": 57.18, "wstar": ["Amon-Ra St. Brown", 35.2, "WR"], "lstar": ["Dak Prescott", 29.76, "QB"], "wmed": null, "lmed": null}, {"w": "fhmjr", "wp": 148.22, "l": "Tony P Touched My PPR", "lp": 114.32, "margin": 33.9, "wstar": ["Ja'Marr Chase", 26.5, "WR"], "lstar": ["Dalton Schultz", 26.0, "TE"], "wmed": null, "lmed": null}, {"w": "Silence of the Lamb", "wp": 136.02, "l": "Weejtriots", "lp": 124.38, "margin": 11.64, "wstar": ["CeeDee Lamb", 35.3, "WR"], "lstar": ["Davante Adams", 39.5, "WR"], "wmed": null, "lmed": null}, {"w": "Tony P Top / Pat Bottom", "wp": 105.5, "l": "Qsama bin Johnston", "lp": 80.96, "margin": 24.54, "wstar": ["Dalton Kincaid", 22.5, "TE"], "lstar": ["Sam LaPorta", 17.2, "TE"], "wmed": null, "lmed": null}, {"w": "Ay Caramba", "wp": 85.4, "l": "katzman696968", "lp": 63.68, "margin": 21.72, "wstar": ["Derrick Henry", 17.7, "RB"], "lstar": ["Tetairoa McMillan", 15.1, "WR"], "wmed": null, "lmed": null}], "awards": {"top": {"team": "Gibbs Me Shelter", "pts": 175.62}, "low": {"team": "katzman696968", "pts": 63.68}, "blowout": {"w": "Amon the edge of glory", "wp": 168.34, "l": "Picken Up Da Huzz", "lp": 111.16, "margin": 57.18, "wstar": ["Amon-Ra St. Brown", 35.2, "WR"], "lstar": ["Dak Prescott", 29.76, "QB"], "wmed": null, "lmed": null}, "close": {"w": "Silence of the Lamb", "wp": 136.02, "l": "Weejtriots", "lp": 124.38, "margin": 11.64, "wstar": ["CeeDee Lamb", 35.3, "WR"], "lstar": ["Davante Adams", 39.5, "WR"], "wmed": null, "lmed": null}, "bench": {"team": "katzman696968", "left": 54.3, "player": ["Tre Tucker", 22.9]}, "heart": {"team": "Brock Hard Footballers", "pts": 127.12, "beats": 7}, "mvp": {"player": "Jaxon Smith-Njigba", "pts": 42.5, "pos": "WR", "team": "Brock Hard Footballers"}, "median": 119.35}, "headlines": [{"tag": "Week 2", "big": true, "title": "Gibbs Me Shelter drops 175.6, the best score of the week", "body": "Josh Allen led the way with 40.8. The league average was 120.1."}, {"tag": "Blowout", "title": "Amon the edge of glory flattens Picken Up Da Huzz by 57.2", "body": "Final: 168.3 to 111.2. Amon-Ra St. Brown scored 35.2 and this one was over early."}, {"tag": "Nail biter", "title": "Silence of the Lamb survives Weejtriots by 11.64", "body": "136.02 to 124.38. One more catch from anyone on the losing side and this headline flips."}, {"tag": "Bench blunder", "title": "katzman696968 leaves 54.3 points on the pine", "body": "Tre Tucker scored 22.9 from the bench. The optimal lineup was right there."}, {"tag": "Heartbreak", "title": "Brock Hard Footballers scores 127.1 and still loses", "body": "That total beat 7 of the other 11 teams. It did not beat the one team that mattered."}, {"tag": "Player of the week", "title": "Jaxon Smith-Njigba goes off for 42.5", "body": "The top individual score in any starting lineup, courtesy of Brock Hard Footballers."}, {"tag": "Waiver wire", "title": "Silence of the Lamb scoops up Keon Coleman", "body": "The most valuable pickup of Week 2 at 1,124 dynasty points."}], "trades": [], "adds": [{"when": "Mon Sep 21", "ts": 1790046709455, "team": "Silence of the Lamb", "player": "Keon Coleman", "pos": "WR", "nfl": "BUF", "bid": null, "type": "Waiver", "value": 1124, "dropped": []}, {"when": "Wed Sep 16", "ts": 1789564697415, "team": "Picken Up Da Huzz", "player": "Roman Wilson", "pos": "WR", "nfl": "PIT", "bid": null, "type": "Free agent", "value": 824, "dropped": []}, {"when": "Wed Sep 16", "ts": 1789564732257, "team": "Weejtriots", "player": "Raheim Sanders", "pos": "RB", "nfl": "CLE", "bid": null, "type": "Free agent", "value": 724, "dropped": []}, {"when": "Mon Sep 21", "ts": 1790037227318, "team": "Tony P Touched My PPR", "player": "Jameis Winston", "pos": "QB", "nfl": "NYG", "bid": null, "type": "Waiver", "value": 562, "dropped": ["Keaton Mitchell"]}, {"when": "Sun Sep 20", "ts": 1789922349247, "team": "Picken Up Da Huzz", "player": "Mack Hollins", "pos": "WR", "nfl": "NE", "bid": null, "type": "Free agent", "value": 437, "dropped": []}, {"when": "Tue Sep 22", "ts": 1790132281897, "team": "Picken Up Da Huzz", "player": "Emanuel Wilson", "pos": "RB", "nfl": "SEA", "bid": null, "type": "Waiver", "value": 430, "dropped": ["Mack Hollins"]}, {"when": "Wed Sep 16", "ts": 1789564638213, "team": "Picken Up Da Huzz", "player": "DeMario Douglas", "pos": "WR", "nfl": "NE", "bid": null, "type": "Free agent", "value": 364, "dropped": ["Mack Hollins"]}, {"when": "Wed Sep 16", "ts": 1789564619903, "team": "Weejtriots", "player": "Kendrick Bourne", "pos": "WR", "nfl": "ARI", "bid": null, "type": "Free agent", "value": 145, "dropped": []}, {"when": "Mon Sep 21", "ts": 1789999707723, "team": "Brock Hard Footballers", "player": "CIN D/ST", "pos": "DEF", "nfl": "CIN", "bid": null, "type": "Waiver", "value": 0, "dropped": ["TB D/ST"]}, {"when": "Thu Sep 17", "ts": 1789699114496, "team": "Picken Up Da Huzz", "player": "Cairo Santos", "pos": "K", "nfl": "CHI", "bid": null, "type": "Free agent", "value": 0, "dropped": ["Eddy Pineiro"]}]}, {"week": 1, "recap": [{"w": "Silence of the Lamb", "wp": 181.46, "l": "Tony P Touched My PPR", "lp": 109.34, "margin": 72.12, "wstar": ["Caleb Williams", 37.26, "QB"], "lstar": ["Chuba Hubbard", 23.7, "RB"], "wmed": null, "lmed": null}, {"w": "Brock Hard Footballers", "wp": 159.76, "l": "Weejtriots", "lp": 96.44, "margin": 63.32, "wstar": ["Jaxon Smith-Njigba", 26.2, "WR"], "lstar": ["Chase Brown", 18.8, "RB"], "wmed": null, "lmed": null}, {"w": "Amon the edge of glory", "wp": 153.74, "l": "Qsama bin Johnston", "lp": 139.92, "margin": 13.82, "wstar": ["Christian Watson", 32.7, "WR"], "lstar": ["Bijan Robinson", 31.3, "RB"], "wmed": null, "lmed": null}, {"w": "fhmjr", "wp": 151.82, "l": "Ay Caramba", "lp": 136.26, "margin": 15.56, "wstar": ["Ashton Jeanty", 32.7, "RB"], "lstar": ["Derrick Henry", 35.3, "RB"], "wmed": null, "lmed": null}, {"w": "Gibbs Me Shelter", "wp": 151.06, "l": "Tony P Top / Pat Bottom", "lp": 74.22, "margin": 76.84, "wstar": ["Josh Allen", 35.66, "QB"], "lstar": ["Dalton Kincaid", 18.0, "TE"], "wmed": null, "lmed": null}, {"w": "katzman696968", "wp": 138.46, "l": "Picken Up Da Huzz", "lp": 112.1, "margin": 26.36, "wstar": ["Justin Jefferson", 31.2, "WR"], "lstar": ["Jonathan Taylor", 25.1, "RB"], "wmed": null, "lmed": null}], "awards": {"top": {"team": "Silence of the Lamb", "pts": 181.46}, "low": {"team": "Tony P Top / Pat Bottom", "pts": 74.22}, "blowout": {"w": "Gibbs Me Shelter", "wp": 151.06, "l": "Tony P Top / Pat Bottom", "lp": 74.22, "margin": 76.84, "wstar": ["Josh Allen", 35.66, "QB"], "lstar": ["Dalton Kincaid", 18.0, "TE"], "wmed": null, "lmed": null}, "close": {"w": "Amon the edge of glory", "wp": 153.74, "l": "Qsama bin Johnston", "lp": 139.92, "margin": 13.82, "wstar": ["Christian Watson", 32.7, "WR"], "lstar": ["Bijan Robinson", 31.3, "RB"], "wmed": null, "lmed": null}, "bench": {"team": "Qsama bin Johnston", "left": 45.12, "player": ["Bryce Young", 31.44]}, "heart": {"team": "Qsama bin Johnston", "pts": 139.92, "beats": 6}, "mvp": {"player": "Caleb Williams", "pts": 37.26, "pos": "QB", "team": "Silence of the Lamb"}, "median": 139.19}, "headlines": [{"tag": "Week 1", "big": true, "title": "Silence of the Lamb drops 181.5, the best score of the week", "body": "Caleb Williams led the way with 37.3. The league average was 133.7."}, {"tag": "Blowout", "title": "Gibbs Me Shelter flattens Tony P Top / Pat Bottom by 76.8", "body": "Final: 151.1 to 74.2. Josh Allen scored 35.7 and this one was over early."}, {"tag": "Nail biter", "title": "Amon the edge of glory survives Qsama bin Johnston by 13.82", "body": "153.74 to 139.92. One more catch from anyone on the losing side and this headline flips."}, {"tag": "Bench blunder", "title": "Qsama bin Johnston leaves 45.1 points on the pine", "body": "Bryce Young scored 31.4 from the bench. The optimal lineup was right there."}, {"tag": "Heartbreak", "title": "Qsama bin Johnston scores 139.9 and still loses", "body": "That total beat 6 of the other 11 teams. It did not beat the one team that mattered."}, {"tag": "Player of the week", "title": "Caleb Williams goes off for 37.3", "body": "The top individual score in any starting lineup, courtesy of Silence of the Lamb."}, {"tag": "Trade", "title": "Weejtriots and katzman696968 make a deal", "body": "Weejtriots gets Hunter Henry. katzman696968 gets MarShawn Lloyd. FantasyCalc gives the edge to katzman696968 by 421."}, {"tag": "Trade", "title": "Qsama bin Johnston and Tony P Touched My PPR make a deal", "body": "Qsama bin Johnston gets Jalen Hurts. Tony P Touched My PPR gets Jameson Williams, 2027 Round 2. FantasyCalc gives the edge to Tony P Touched My PPR by 1,065."}, {"tag": "Trade", "title": "Qsama bin Johnston and Tony P Top / Pat Bottom make a deal", "body": "Qsama bin Johnston gets Bijan Robinson. Tony P Top / Pat Bottom gets Quinshon Judkins, 2026 Round 1, 2026 Round 3, 2026 Round 1. FantasyCalc gives the edge to Qsama bin Johnston by 7,831."}, {"tag": "Trade", "title": "Qsama bin Johnston and Tony P Touched My PPR make a deal", "body": "Qsama bin Johnston gets Colston Loveland. Tony P Touched My PPR gets Rome Odunze. FantasyCalc gives the edge to Qsama bin Johnston by 1,073."}, {"tag": "Trade", "title": "Tony P Top / Pat Bottom and Silence of the Lamb make a deal", "body": "Tony P Top / Pat Bottom gets RJ Harvey, 2026 Round 1. Silence of the Lamb gets 2026 Round 1. FantasyCalc gives the edge to Tony P Top / Pat Bottom by 1,844."}, {"tag": "Waiver wire", "title": "Silence of the Lamb scoops up Jalen Coker", "body": "The most valuable pickup of Week 1 at 2,236 dynasty points."}], "trades": [{"when": "Sat Aug 29", "ts": 1788008144838, "sides": [{"team": "Weejtriots", "owner": "theinevitableouija", "gets": [{"name": "Hunter Henry", "pos": "TE", "nfl": "NE", "value": 678}], "value": 678}, {"team": "katzman696968", "owner": "katzman696968", "gets": [{"name": "MarShawn Lloyd", "pos": "RB", "nfl": "GB", "value": 1099}], "value": 1099}]}, {"when": "Fri Aug 28", "ts": 1787948482871, "sides": [{"team": "Qsama bin Johnston", "owner": "shanereichert", "gets": [{"name": "Jalen Hurts", "pos": "QB", "nfl": "PHI", "value": 2569}], "value": 2569}, {"team": "Tony P Touched My PPR", "owner": "patrickoleary1", "gets": [{"name": "Jameson Williams", "pos": "WR", "nfl": "DET", "value": 2198}, {"name": "2027 Round 2", "pos": "PICK", "nfl": "via Qsama bin Johnston", "value": 1436}], "value": 3634}]}, {"when": "Wed May 13", "ts": 1778717161065, "sides": [{"team": "Qsama bin Johnston", "owner": "shanereichert", "gets": [{"name": "Bijan Robinson", "pos": "RB", "nfl": "ATL", "value": 10741}], "value": 10741}, {"team": "Tony P Top / Pat Bottom", "owner": "steveg1313", "gets": [{"name": "Quinshon Judkins", "pos": "RB", "nfl": "CLE", "value": 2910}, {"name": "2026 Round 1", "pos": "PICK", "nfl": "via Qsama bin Johnston", "value": 0}, {"name": "2026 Round 3", "pos": "PICK", "nfl": "via Qsama bin Johnston", "value": 0}, {"name": "2026 Round 1", "pos": "PICK", "nfl": "via katzman696968", "value": 0}], "value": 2910}]}, {"when": "Wed May 13", "ts": 1778687400516, "sides": [{"team": "Qsama bin Johnston", "owner": "shanereichert", "gets": [{"name": "Colston Loveland", "pos": "TE", "nfl": "CHI", "value": 3304}], "value": 3304}, {"team": "Tony P Touched My PPR", "owner": "patrickoleary1", "gets": [{"name": "Rome Odunze", "pos": "WR", "nfl": "CHI", "value": 2231}], "value": 2231}]}, {"when": "Wed May 13", "ts": 1778682556363, "sides": [{"team": "Tony P Top / Pat Bottom", "owner": "steveg1313", "gets": [{"name": "RJ Harvey", "pos": "RB", "nfl": "DEN", "value": 1844}, {"name": "2026 Round 1", "pos": "PICK", "nfl": "via Silence of the Lamb", "value": 0}], "value": 1844}, {"team": "Silence of the Lamb", "owner": "parkergold11", "gets": [{"name": "2026 Round 1", "pos": "PICK", "nfl": "via Tony P Top / Pat Bottom", "value": 0}], "value": 0}]}], "adds": [{"when": "Mon Aug 24", "ts": 1787593446141, "team": "Silence of the Lamb", "player": "Jalen Coker", "pos": "WR", "nfl": "CAR", "bid": null, "type": "Free agent", "value": 2236, "dropped": []}, {"when": "Mon Aug 24", "ts": 1787596757920, "team": "Qsama bin Johnston", "player": "Jonah Coleman", "pos": "RB", "nfl": "DEN", "bid": null, "type": "Waiver", "value": 1836, "dropped": ["Ja'Tavion Sanders"]}, {"when": "Fri Aug 28", "ts": 1787949183472, "team": "Gibbs Me Shelter", "player": "Omar Cooper", "pos": "WR", "nfl": "NYJ", "bid": null, "type": "Waiver", "value": 1648, "dropped": ["Kyle Williams"]}, {"when": "Mon Aug 24", "ts": 1787593818401, "team": "Silence of the Lamb", "player": "Juwan Johnson", "pos": "TE", "nfl": "NO", "bid": null, "type": "Free agent", "value": 1561, "dropped": []}, {"when": "Mon Aug 24", "ts": 1787609948336, "team": "Brock Hard Footballers", "player": "Wan'Dale Robinson", "pos": "WR", "nfl": "TEN", "bid": null, "type": "Waiver", "value": 1371, "dropped": ["Emanuel Wilson"]}, {"when": "Sat Aug 29", "ts": 1788012424585, "team": "Weejtriots", "player": "Brian Robinson", "pos": "RB", "nfl": "ATL", "bid": null, "type": "Free agent", "value": 1280, "dropped": ["Keenan Allen"]}, {"when": "Mon Sep 7", "ts": 1788834366983, "team": "Picken Up Da Huzz", "player": "Dontayvion Wicks", "pos": "WR", "nfl": "PHI", "bid": null, "type": "Free agent", "value": 1262, "dropped": ["Austin Ekeler"]}, {"when": "Thu Aug 27", "ts": 1787850092397, "team": "Tony P Touched My PPR", "player": "Keaton Mitchell", "pos": "RB", "nfl": "LAC", "bid": null, "type": "Free agent", "value": 1119, "dropped": []}, {"when": "Wed Aug 26", "ts": 1787762851306, "team": "Weejtriots", "player": "MarShawn Lloyd", "pos": "RB", "nfl": "GB", "bid": null, "type": "Free agent", "value": 1099, "dropped": []}, {"when": "Wed Aug 26", "ts": 1787781291639, "team": "Silence of the Lamb", "player": "Chris Rodriguez", "pos": "RB", "nfl": "JAX", "bid": null, "type": "Free agent", "value": 1087, "dropped": ["Xavier Legette"]}]}], "this_week": {"news": [{"tag": "Waiver wire", "title": "Silence of the Lamb adds Keaton Mitchell", "body": "Free agent pickup on Wed Sep 30, dropping Jalen Nailor."}, {"tag": "Waiver wire", "title": "Silence of the Lamb adds Geno Smith", "body": "Free agent pickup on Wed Sep 30."}, {"tag": "Waiver wire", "title": "Picken Up Da Huzz adds Konata Mumpfield", "body": "Free agent pickup on Wed Sep 30, dropping DeMario Douglas."}], "trades": [], "adds": [{"when": "Wed Sep 30", "ts": 1790758958619, "team": "Silence of the Lamb", "player": "Keaton Mitchell", "pos": "RB", "nfl": "LAC", "bid": null, "type": "Free agent", "value": 1119, "dropped": ["Jalen Nailor"]}, {"when": "Wed Sep 30", "ts": 1790773472574, "team": "Silence of the Lamb", "player": "Geno Smith", "pos": "QB", "nfl": "NYJ", "bid": null, "type": "Free agent", "value": 784, "dropped": []}, {"when": "Wed Sep 30", "ts": 1790778316990, "team": "Picken Up Da Huzz", "player": "Konata Mumpfield", "pos": "WR", "nfl": "LAR", "bid": null, "type": "Free agent", "value": 266, "dropped": ["DeMario Douglas"]}, {"when": "Wed Sep 30", "ts": 1790778215295, "team": "Picken Up Da Huzz", "player": "Tyler Higbee", "pos": "TE", "nfl": "LAR", "bid": null, "type": "Free agent", "value": 150, "dropped": ["Zach Ertz"]}, {"when": "Wed Sep 30", "ts": 1790798434530, "team": "Brock Hard Footballers", "player": "Samaje Perine", "pos": "RB", "nfl": "CIN", "bid": null, "type": "Free agent", "value": 92, "dropped": []}, {"when": "Wed Sep 30", "ts": 1790777194111, "team": "Ay Caramba", "player": "CHI D/ST", "pos": "DEF", "nfl": "CHI", "bid": null, "type": "Free agent", "value": 0, "dropped": ["PHI D/ST"]}]}, "grid": [{"team": "Silence of the Lamb", "rank": 1, "weeks": [{"w": 1, "pts": 181.46, "h2h": "W", "med": null, "opp": "Tony P Touched My PPR", "opp_pts": 109.34}, {"w": 2, "pts": 136.02, "h2h": "W", "med": null, "opp": "Weejtriots", "opp_pts": 124.38}, {"w": 3, "pts": 190.8, "h2h": "W", "med": null, "opp": "Gibbs Me Shelter", "opp_pts": 159.56}]}, {"team": "Gibbs Me Shelter", "rank": 2, "weeks": [{"w": 1, "pts": 151.06, "h2h": "W", "med": null, "opp": "Tony P Top / Pat Bottom", "opp_pts": 74.22}, {"w": 2, "pts": 175.62, "h2h": "W", "med": null, "opp": "Brock Hard Footballers", "opp_pts": 127.12}, {"w": 3, "pts": 159.56, "h2h": "L", "med": null, "opp": "Silence of the Lamb", "opp_pts": 190.8}]}, {"team": "Brock Hard Footballers", "rank": 3, "weeks": [{"w": 1, "pts": 159.76, "h2h": "W", "med": null, "opp": "Weejtriots", "opp_pts": 96.44}, {"w": 2, "pts": 127.12, "h2h": "L", "med": null, "opp": "Gibbs Me Shelter", "opp_pts": 175.62}, {"w": 3, "pts": 138.64, "h2h": "W", "med": null, "opp": "Tony P Top / Pat Bottom", "opp_pts": 82.46}]}, {"team": "Amon the edge of glory", "rank": 4, "weeks": [{"w": 1, "pts": 153.74, "h2h": "W", "med": null, "opp": "Qsama bin Johnston", "opp_pts": 139.92}, {"w": 2, "pts": 168.34, "h2h": "W", "med": null, "opp": "Picken Up Da Huzz", "opp_pts": 111.16}, {"w": 3, "pts": 124.66, "h2h": "W", "med": null, "opp": "Ay Caramba", "opp_pts": 91.64}]}, {"team": "fhmjr", "rank": 5, "weeks": [{"w": 1, "pts": 151.82, "h2h": "W", "med": null, "opp": "Ay Caramba", "opp_pts": 136.26}, {"w": 2, "pts": 148.22, "h2h": "W", "med": null, "opp": "Tony P Touched My PPR", "opp_pts": 114.32}, {"w": 3, "pts": 108.56, "h2h": "L", "med": null, "opp": "Weejtriots", "opp_pts": 143.94}]}, {"team": "Weejtriots", "rank": 6, "weeks": [{"w": 1, "pts": 96.44, "h2h": "L", "med": null, "opp": "Brock Hard Footballers", "opp_pts": 159.76}, {"w": 2, "pts": 124.38, "h2h": "L", "med": null, "opp": "Silence of the Lamb", "opp_pts": 136.02}, {"w": 3, "pts": 143.94, "h2h": "W", "med": null, "opp": "fhmjr", "opp_pts": 108.56}]}, {"team": "Qsama bin Johnston", "rank": 7, "weeks": [{"w": 1, "pts": 139.92, "h2h": "L", "med": null, "opp": "Amon the edge of glory", "opp_pts": 153.74}, {"w": 2, "pts": 80.96, "h2h": "L", "med": null, "opp": "Tony P Top / Pat Bottom", "opp_pts": 105.5}, {"w": 3, "pts": 131.24, "h2h": "W", "med": null, "opp": "Picken Up Da Huzz", "opp_pts": 107.44}]}, {"team": "Picken Up Da Huzz", "rank": 8, "weeks": [{"w": 1, "pts": 112.1, "h2h": "L", "med": null, "opp": "katzman696968", "opp_pts": 138.46}, {"w": 2, "pts": 111.16, "h2h": "L", "med": null, "opp": "Amon the edge of glory", "opp_pts": 168.34}, {"w": 3, "pts": 107.44, "h2h": "L", "med": null, "opp": "Qsama bin Johnston", "opp_pts": 131.24}]}, {"team": "Ay Caramba", "rank": 9, "weeks": [{"w": 1, "pts": 136.26, "h2h": "L", "med": null, "opp": "fhmjr", "opp_pts": 151.82}, {"w": 2, "pts": 85.4, "h2h": "W", "med": null, "opp": "katzman696968", "opp_pts": 63.68}, {"w": 3, "pts": 91.64, "h2h": "L", "med": null, "opp": "Amon the edge of glory", "opp_pts": 124.66}]}, {"team": "Tony P Touched My PPR", "rank": 10, "weeks": [{"w": 1, "pts": 109.34, "h2h": "L", "med": null, "opp": "Silence of the Lamb", "opp_pts": 181.46}, {"w": 2, "pts": 114.32, "h2h": "L", "med": null, "opp": "fhmjr", "opp_pts": 148.22}, {"w": 3, "pts": 81.8, "h2h": "W", "med": null, "opp": "katzman696968", "opp_pts": 80.84}]}, {"team": "katzman696968", "rank": 11, "weeks": [{"w": 1, "pts": 138.46, "h2h": "W", "med": null, "opp": "Picken Up Da Huzz", "opp_pts": 112.1}, {"w": 2, "pts": 63.68, "h2h": "L", "med": null, "opp": "Ay Caramba", "opp_pts": 85.4}, {"w": 3, "pts": 80.84, "h2h": "L", "med": null, "opp": "Tony P Touched My PPR", "opp_pts": 81.8}]}, {"team": "Tony P Top / Pat Bottom", "rank": 12, "weeks": [{"w": 1, "pts": 74.22, "h2h": "L", "med": null, "opp": "Gibbs Me Shelter", "opp_pts": 151.06}, {"w": 2, "pts": 105.5, "h2h": "W", "med": null, "opp": "Qsama bin Johnston", "opp_pts": 80.96}, {"w": 3, "pts": 82.46, "h2h": "L", "med": null, "opp": "Brock Hard Footballers", "opp_pts": 138.64}]}], "injuries": [{"team": "Tony P Touched My PPR", "owner": "patrickoleary1", "player": "1 empty lineup slot", "pos": "", "nfl": "", "status": "Empty", "body": ""}, {"team": "Weejtriots", "owner": "theinevitableouija", "player": "1 empty lineup slot", "pos": "", "nfl": "", "status": "Empty", "body": ""}, {"team": "katzman696968", "owner": "katzman696968", "player": "1 empty lineup slot", "pos": "", "nfl": "", "status": "Empty", "body": ""}, {"team": "Tony P Touched My PPR", "owner": "patrickoleary1", "player": "Breece Hall", "pos": "RB", "nfl": "NYJ", "status": "Doubtful", "body": "Thigh"}, {"team": "Ay Caramba", "owner": "br5219", "player": "Lamar Jackson", "pos": "QB", "nfl": "BAL", "status": "Questionable", "body": "Undisclosed"}, {"team": "Ay Caramba", "owner": "br5219", "player": "Puka Nacua", "pos": "WR", "nfl": "LAR", "status": "Questionable", "body": "Hip"}, {"team": "Brock Hard Footballers", "owner": "tonydoesntknowball", "player": "Bucky Irving", "pos": "RB", "nfl": "TB", "status": "Questionable", "body": "Lower Body"}, {"team": "Brock Hard Footballers", "owner": "tonydoesntknowball", "player": "Nico Collins", "pos": "WR", "nfl": "HOU", "status": "Questionable", "body": "Hamstring"}, {"team": "Qsama bin Johnston", "owner": "shanereichert", "player": "Ladd McConkey", "pos": "WR", "nfl": "LAC", "status": "Questionable", "body": "Foot"}, {"team": "Weejtriots", "owner": "theinevitableouija", "player": "Tony Pollard", "pos": "RB", "nfl": "TEN", "status": "Questionable", "body": "Ankle"}, {"team": "Weejtriots", "owner": "theinevitableouija", "player": "Zay Flowers", "pos": "WR", "nfl": "BAL", "status": "Questionable", "body": "Hamstring"}, {"team": "Weejtriots", "owner": "theinevitableouija", "player": "Jakobi Meyers", "pos": "WR", "nfl": "JAX", "status": "Questionable", "body": "Thumb"}, {"team": "katzman696968", "owner": "katzman696968", "player": "Justin Jefferson", "pos": "WR", "nfl": "MIN", "status": "Questionable", "body": "Ankle"}, {"team": "katzman696968", "owner": "katzman696968", "player": "DJ Moore", "pos": "WR", "nfl": "BUF", "status": "Questionable", "body": "Shoulder"}, {"team": "katzman696968", "owner": "katzman696968", "player": "Mike Evans", "pos": "WR", "nfl": "SF", "status": "Questionable", "body": "Ribs"}], "preview": [{"fav": "Gibbs Me Shelter", "fav_rank": 2, "dog": "fhmjr", "dog_rank": 5, "spread": 17.5, "fav_avg": 162.1, "dog_avg": 136.2, "gotw": true}, {"fav": "Brock Hard Footballers", "fav_rank": 3, "dog": "Qsama bin Johnston", "dog_rank": 7, "spread": 20.0, "fav_avg": 141.8, "dog_avg": 117.4}, {"fav": "Silence of the Lamb", "fav_rank": 1, "dog": "Tony P Top / Pat Bottom", "dog_rank": 12, "spread": 59.0, "fav_avg": 169.4, "dog_avg": 87.4}, {"fav": "Amon the edge of glory", "fav_rank": 4, "dog": "Tony P Touched My PPR", "dog_rank": 10, "spread": 34.5, "fav_avg": 148.9, "dog_avg": 101.8}, {"fav": "Picken Up Da Huzz", "fav_rank": 8, "dog": "Ay Caramba", "dog_rank": 9, "spread": 4.0, "fav_avg": 110.2, "dog_avg": 104.4}, {"fav": "Weejtriots", "fav_rank": 6, "dog": "katzman696968", "dog_rank": 11, "spread": 21.5, "fav_avg": 121.6, "dog_avg": 94.3}], "risers": [{"player": "Kenneth Walker", "pos": "RB", "team": "Silence of the Lamb", "value": 6692, "trend": 1917}, {"player": "Parker Washington", "pos": "WR", "team": "Amon the edge of glory", "value": 3950, "trend": 1315}, {"player": "Chuba Hubbard", "pos": "RB", "team": "Tony P Touched My PPR", "value": 2832, "trend": 1127}, {"player": "Jaxon Smith-Njigba", "pos": "WR", "team": "Brock Hard Footballers", "value": 9602, "trend": 1093}, {"player": "Dalton Kincaid", "pos": "TE", "team": "Tony P Top / Pat Bottom", "value": 2563, "trend": 760}], "fallers": [{"player": "Omarion Hampton", "pos": "RB", "team": "Amon the edge of glory", "value": 4440, "trend": -1878}, {"player": "De'Von Achane", "pos": "RB", "team": "Weejtriots", "value": 4459, "trend": -1847}, {"player": "Malik Nabers", "pos": "WR", "team": "Qsama bin Johnston", "value": 4916, "trend": -1590}, {"player": "Colston Loveland", "pos": "TE", "team": "Qsama bin Johnston", "value": 3304, "trend": -1547}, {"player": "Drake Maye", "pos": "QB", "team": "fhmjr", "value": 2961, "trend": -1323}], "playoff_week": 15, "playoff_teams": 6, "trade_deadline": 11};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const f1 = n => Number(n).toFixed(1);
+const fmt = n => Number(n).toLocaleString("en-US");
+const pos = p => `<span class="pos ${esc(p)}">${esc(p || "—")}</span>`;
+const ME = "parkergold11";
+const av = (team, size = "") => {
+  const src = (D.avatars || {})[team];
+  const init = esc((String(team).match(/[A-Za-z0-9]/) || ["?"])[0].toUpperCase());
+  return `<span class="ta ${size}">${init}${src ? `<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</span>`;
+};
+const tn = (team, size = "") => `<span class="tnw">${av(team, size)}<span>${esc(team)}</span></span>`;
+
+function init() {
+  const lw = D.last_week;
+  $("#kicker").textContent = `★ WEEK ${D.week} · ${D.season} SEASON ★`;
+  $("#sub").innerHTML = `Power Rankings <b>·</b> Week by Week <b>·</b> The Wire`;
+  $("#updated").textContent = `Updated ${D.updated}`;
+  $("#ticker").dataset.week = lw;
+
+  // ticker
+  const wk = D.weeks[0];
+  const items = wk.recap.map(g => `<span>${av(g.w, "xs")}<b>${esc(g.w)}</b> ${f1(g.wp)} <span class="l">def. ${av(g.l, "xs")}${esc(g.l)} ${f1(g.lp)}</span></span>`);
+  items.push(`<span>Player of the week <b>${esc(wk.awards.mvp.player)}</b> ${f1(wk.awards.mvp.pts)}</span>`);
+  items.push(`<span>League median <b>${f1(wk.awards.median)}</b></span>`);
+  $("#tickerTrack").innerHTML = items.join("") + items.join("");
+
+  document.title = `${D.league} — ${D.season} Season Central`;
+  $("#h1").innerHTML = D.title_lines.map(esc).join("<br/>");
+  $("#dynHint").textContent = `// ${D.fc_label}, 30 day trend`;
+  if (D.archive) { $("#navArch").hidden = false; $("#footArch").hidden = false; }
+  if (D.draft_race) { $("#navRace").hidden = false; $("#draftrace").hidden = false; renderRace(); }
+  renderPreview(); renderPower(); renderTabs(); renderGrid(); renderStandings(); renderWire(); renderDynasty(); spy();
+}
+
+function renderPreview() {
+  $("#twTitle").textContent = `Week ${D.week} Slate`;
+  const g = D.preview.find(p => p.gotw) || D.preview[0];
+  const rec = t => { const r = D.power.find(x => x.team === t); return r ? `${r.w}-${r.l} · ${f1(r.ppg)} per game` : ""; };
+  $("#gotw").innerHTML = `<div class="card gotw"><div class="lab">GAME OF THE WEEK</div>
+    <div class="gside">${av(g.fav, "xl")}<div class="rk">#${g.fav_rank}</div><div class="nm">${esc(g.fav)}</div><div class="rec">${rec(g.fav)}</div></div>
+    <div class="vs">VS</div>
+    <div class="gside">${av(g.dog, "xl")}<div class="rk">#${g.dog_rank}</div><div class="nm">${esc(g.dog)}</div><div class="rec">${rec(g.dog)}</div></div>
+    <div class="gline">Power rankings favor <b>${esc(g.fav)}</b> by <b>${g.spread}</b> points · last three weeks: ${g.fav_avg} vs ${g.dog_avg}</div></div>`;
+  $("#slate").innerHTML = D.preview.filter(p => p !== g).map(p => `<div class="card m">
+      <div class="t"><i>#${p.fav_rank}</i>${av(p.fav, "xs")}${esc(p.fav)}</div><div class="sp">−${p.spread}</div>
+      <div class="t"><i>#${p.dog_rank}</i>${av(p.dog, "xs")}${esc(p.dog)}</div><div class="avg">${p.fav_avg} / ${p.dog_avg} avg</div></div>`).join("");
+}
+
+function spark(pts) {
+  if (!pts.length) return "";
+  const lo = 70, hi = 200, W = 110, H = 38;
+  const xs = pts.map((_, i) => pts.length === 1 ? W / 2 : 6 + i * (W - 12) / (pts.length - 1));
+  const ys = pts.map(p => H - 5 - (Math.max(lo, Math.min(hi, p)) - lo) / (hi - lo) * (H - 10));
+  const line = xs.map((x, i) => `${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+  const dots = xs.map((x, i) => `<circle cx="${x.toFixed(1)}" cy="${ys[i].toFixed(1)}" r="2.6" fill="#f5b500"/>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline points="${line}" fill="none" stroke="#f5b500" stroke-width="2" stroke-linejoin="round"/>${dots}</svg>`;
+}
+
+function renderPower() {
+  $("#pr").innerHTML = D.power.map(r => {
+    const mv = r.move > 0 ? `<span class="mv up">▲ ${r.move}</span>` : r.move < 0 ? `<span class="mv dn">▼ ${-r.move}</span>` : `<span class="mv eq">—</span>`;
+    const pic = av(r.team, "lg");
+    const chips = r.results.map(x => `<span class="chip ${x}">${x}</span>`).join("");
+    const lineup = r.lineup.map(p => `<div>${pos(p.pos)}<span class="nm">${esc(p.name)} <small style="color:var(--dim)">${esc(p.nfl)}</small></span>${p.inj ? `<span class="inj ${esc(p.inj)}">${esc(p.inj.toUpperCase())}</span>` : ""}</div>`).join("");
+    const assets = r.assets.map(a => `<div><span>${pos(a.pos)} ${esc(a.name)}</span><span class="num" style="color:var(--muted)">${fmt(a.value)}</span></div>`).join("");
+    return `<div class="card prc ${r.owner === ME ? "me" : ""}" data-t="${esc(r.team)}">
+      <div class="prh">
+        <div><div class="rank">${r.rank}</div>${mv}</div>
+        <div class="avc">${pic}</div>
+        <div class="tn"><div class="n">${esc(r.team)}</div><div class="o">${esc(r.owner)}${r.streak ? ` · streak ${esc(r.streak)}` : ""}</div>
+          <div class="mob" style="display:none"><b class="num">${r.w}-${r.l}</b><span class="chips" style="display:flex;gap:3px">${chips}</span></div>
+          <div class="b">${esc(r.blurb)}</div></div>
+        <div class="rec2"><div class="wl num">${r.w}-${r.l}<small>${f1(r.pf)} PF</small></div><div class="chips">${chips}</div></div>
+        <div class="spark">${spark(r.weeks)}<div class="lab">${f1(r.ppg)} per game</div></div>
+        <div class="pscore"><div class="v num">${f1(r.score)}<small> / 100</small></div><div class="bar"><i style="width:${Math.max(3, r.score)}%"></i></div></div>
+        <div class="caret">▼</div>
+      </div>
+      <div class="prd">
+        <div><h4>Week ${D.week} lineup</h4><div class="lu">${lineup || '<div>No lineup set yet</div>'}</div></div>
+        <div>
+          <div class="stats">
+            <div><b class="num">${f1(r.pf)}</b><span>Points for</span></div><div><b class="num">${f1(r.pa)}</b><span>Points against</span></div>
+            <div><b class="num">${f1(r.maxpf)}</b><span>Max points</span></div><div><b class="num">${esc(r.ap)}</b><span>All-play</span></div>
+          </div>
+          <h4>Top dynasty assets</h4><div class="assets">${assets}</div>
+        </div>
+      </div></div>`;
+  }).join("");
+  document.querySelectorAll(".prc").forEach(c => c.addEventListener("click", e => {
+    if (e.target.closest(".prd")) return; c.classList.toggle("open");
+  }));
+}
+
+function renderTabs() {
+  $("#tabs").innerHTML = D.weeks.map((w, i) => `<button class="${i === 0 ? "on" : ""}" data-i="${i}">Week ${w.week}</button>`).join("");
+  document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#tabs button").forEach(x => x.classList.remove("on")); b.classList.add("on"); renderWeek(+b.dataset.i);
+  }));
+  renderWeek(0);
+}
+
+function newsCards(list) {
+  return list.map(h => `<div class="card nc ${h.big ? "big" : ""} t-${esc(h.tag.split(" ")[0])}"><div class="tag">${esc(h.tag)}</div><h3>${esc(h.title)}</h3><p>${esc(h.body)}</p></div>`).join("");
+}
+
+function tradeCards(trades) {
+  return trades.map(t => {
+    const [a, b] = t.sides; const fav = a.value >= b.value ? a : b; const gap = Math.abs(a.value - b.value);
+    const side = s => `<div class="side ${s === fav && gap >= 150 ? "fav" : ""}"><h5><span class="tnw">${av(s.team, "md")}<span>${esc(s.team)} receives<small>${esc(s.owner)}</small></span></span></h5>
+      ${s.gets.map(g => `<div class="g">${pos(g.pos)}<span class="nm">${esc(g.name)} <small style="color:var(--dim)">${esc(g.nfl)}</small></span><span class="vv num">${fmt(g.value)}</span></div>`).join("")}
+      <div class="tot num">${fmt(s.value)}</div></div>`;
+    const verdict = (gap < 150 ? "Dead even on paper." : `FantasyCalc edge: <b>${esc(fav.team)}</b> by ${fmt(gap)}.`) + ` <span style="color:var(--dim)">Values as of today.</span>`;
+    return `<div class="card tr"><div class="when">Trade · ${esc(t.when)}</div><div class="sides">${side(a)}${side(b)}</div><div class="verdict">${verdict}</div></div>`;
+  }).join("");
+}
+
+function addCards(adds) {
+  return adds.map(a => `<div class="card ad">${pos(a.pos)}<div class="x"><b>${esc(a.player)}</b><span>${av(a.team, "xs")}${esc(a.team)} · ${esc(a.type)}${a.dropped.length ? ` · dropped ${esc(a.dropped.join(", "))}` : ""}</span></div>
+    ${a.bid ? `<div class="bid">$${a.bid}</div>` : ""}</div>`).join("");
+}
+
+function renderWeek(i) {
+  const w = D.weeks[i], A = w.awards;
+  const aw = (icon, k, v, t, team) => `<div class="card aw"><div class="i">${team ? av(team, "md") : icon}</div><div class="k">${team ? icon + " " : ""}${k}</div><div class="v num">${v}</div><div class="t">${esc(t)}</div></div>`;
+  const results = w.recap.map(g => {
+    const tot = g.wp + g.lp;
+    return `<div class="card res">
+      <div class="row win"><span class="n">${tn(g.w, "md")}</span>${g.wmed ? `<span class="medb ${g.wmed}">MED ${g.wmed}</span>` : "<span></span>"}<span class="p num">${f1(g.wp)}</span></div>
+      <div class="mbar"><i style="width:${(g.wp / tot * 100).toFixed(1)}%"></i></div>
+      <div class="row lose"><span class="n">${tn(g.l, "md")}</span>${g.lmed ? `<span class="medb ${g.lmed}">MED ${g.lmed}</span>` : "<span></span>"}<span class="p num">${f1(g.lp)}</span></div>
+      <div class="star">Top scorers: <b>${esc(g.wstar[0])}</b> ${f1(g.wstar[1])} · <b>${esc(g.lstar[0])}</b> ${f1(g.lstar[1])} · margin ${f1(g.margin)}</div></div>`;
+  }).join("");
+  $("#weekBody").innerHTML = `
+    <div class="news">${newsCards(w.headlines.filter(h => h.tag !== "Trade"))}</div>
+    <div class="awards">
+      ${aw("🔥", "Top score", f1(A.top.pts), A.top.team, A.top.team)}
+      ${aw("🧊", "Low score", f1(A.low.pts), A.low.team, A.low.team)}
+      ${aw("💥", "Blowout", "+" + f1(A.blowout.margin), `${A.blowout.w} over ${A.blowout.l}`, A.blowout.w)}
+      ${aw("😬", "Closest", f1(A.close.margin), `${A.close.w} over ${A.close.l}`, A.close.w)}
+      ${aw("🪑", "Bench points", f1(A.bench.left), A.bench.team, A.bench.team)}
+      ${aw("⭐", "Player of the week", f1(A.mvp.pts), `${A.mvp.player}, ${A.mvp.team}`, A.mvp.team)}
+    </div>
+    <div class="subh">Final scores · league median ${f1(A.median)}</div>
+    <div class="results">${results}</div>
+    ${w.trades.length ? `<div class="subh">Trades in Week ${w.week}</div><div class="trades">${tradeCards(w.trades)}</div>` : ""}
+    ${w.adds.length ? `<div class="subh">Top pickups in Week ${w.week}</div><div class="adds">${addCards(w.adds.slice(0, 6))}</div>` : ""}`;
+}
+
+function renderGrid() {
+  const weeks = D.weeks.map(w => w.week).sort((a, b) => a - b);
+  const head = `<tr><th style="text-align:left">Team</th>${weeks.map(w => `<th>Wk ${w}</th>`).join("")}<th>Record</th></tr>`;
+  const rows = D.grid.map(t => {
+    const r = D.power.find(x => x.team === t.team);
+    const cells = weeks.map(w => {
+      const c = t.weeks.find(x => x.w === w);
+      if (!c) return "<td>—</td>";
+      return `<td title="vs ${esc(c.opp)} ${f1(c.opp_pts)}"><div class="cell"><span class="pp num">${f1(c.pts)}</span><span class="cc"><span class="chip ${c.h2h}">${c.h2h}</span>${c.med ? `<span class="chip ${c.med}">${c.med}</span>` : ""}</span></div></td>`;
+    }).join("");
+    return `<tr><td class="tm"><i>#${t.rank}</i>${av(t.team, "sm")}${esc(t.team)}</td>${cells}<td class="num"><b>${r.w}-${r.l}</b></td></tr>`;
+  }).join("");
+  $("#gridT").innerHTML = head + rows;
+}
+
+function renderStandings() {
+  $("#stHint").textContent = `// Top ${D.playoff_teams} make the playoffs · Week ${D.playoff_week} kickoff · trade deadline Week ${D.trade_deadline}`;
+  const head = `<tr><th>#</th><th>Team</th><th>W-L</th><th>PF</th><th>PA</th><th>Max PF</th><th>All-play</th><th>Luck</th><th>Streak</th></tr>`;
+  const rows = D.standings.map((s, i) => {
+    const g = D.grid.find(x => x.team === s.team);
+    const h2hW = g.weeks.filter(x => x.h2h === "W").length;
+    const [apw, apl] = s.ap.split("-").map(Number);
+    const luck = h2hW - apw / 11;
+    const lk = `<span class="lk ${luck > 0.25 ? "good" : luck < -0.25 ? "bad" : ""}">${luck > 0 ? "+" : ""}${luck.toFixed(1)}</span>`;
+    return `<tr class="${i === D.playoff_teams - 1 ? "cut" : ""}"><td>${i + 1}</td><td class="tm"><span class="tnw">${av(s.team, "md")}<span>${esc(s.team)}<small>${esc(s.owner)}</small></span></span></td>
+      <td class="num"><b>${s.w}-${s.l}</b></td><td class="num">${f1(s.pf)}</td><td class="num">${f1(s.pa)}</td><td class="num">${f1(s.maxpf)}</td>
+      <td class="num">${esc(s.ap)}</td><td class="num">${lk}</td><td>${esc(s.streak)}</td></tr>`;
+  }).join("");
+  $("#stT").innerHTML = head + rows;
+}
+
+function renderWire() {
+  const tw = D.this_week;
+  $("#wireHint").textContent = `// Moves since Week ${D.last_week} went final`;
+  const cards = tw.news.length ? newsCards(tw.news) : `<div class="card nc"><div class="tag">Quiet</div><h3>No moves yet this week</h3><p>The wire is open. Somebody blink.</p></div>`;
+  $("#twNews").innerHTML = cards;
+  $("#twTrades").innerHTML = tw.trades.length ? `<div class="subh">Trade details</div><div class="trades">${tradeCards(tw.trades)}</div>` : "";
+  const byTeam = {};
+  D.injuries.forEach(i => (byTeam[i.team] = byTeam[i.team] || []).push(i));
+  $("#injHead").textContent = `Injury report for Week ${D.week} lineups`;
+  $("#inj").innerHTML = Object.keys(byTeam).length ? Object.entries(byTeam).map(([t, list]) => `<div class="card ij"><h5>${tn(t, "md")}</h5>
+    ${list.map(i => `<div class="r">${i.pos ? pos(i.pos) : ""}<span class="nm">${esc(i.player)} <small>${esc(i.nfl)}${i.body ? " · " + esc(i.body) : ""}</small></span><span class="inj ${esc(i.status)}">${esc(i.status.toUpperCase())}</span></div>`).join("")}</div>`).join("")
+    : `<div class="card ij"><h5>All clear</h5><div class="r">No injured starters in any lineup.</div></div>`;
+}
+
+function renderRace() {
+  const R = D.draft_race;
+  $("#raceTitle").textContent = `${R.season} Draft Order Race`;
+  $("#raceHint").textContent = `// ${R.rule}`;
+  const head = `<tr><th>Pick</th><th>Team</th><th>Max PF</th><th>Gap to next</th><th style="text-align:left">Pick owned by</th></tr>`;
+  $("#raceT").innerHTML = head + R.rows.map(r => `<tr><td><b>${esc(r.pick)}</b></td><td class="tm">${tn(r.team, "sm")}</td>
+    <td class="num">${f1(r.maxpf)}</td><td class="num">${r.gap === null ? "—" : "+" + f1(r.gap)}</td>
+    <td style="text-align:left">${av(r.owner, "xs")}${r.traded ? `<b style="color:var(--gold-hi)">${esc(r.owner)}</b>` : `<span style="color:var(--muted)">${esc(r.owner)}</span>`}</td></tr>`).join("");
+}
+
+function renderDynasty() {
+  const rows = [...D.power].sort((a, b) => b.dynasty - a.dynasty);
+  const max = rows[0].dynasty;
+  $("#dynBars").innerHTML = rows.map(r => `<div class="dbar"><span class="n">${tn(r.team, "xs")}</span><span class="t"><i style="width:${(r.dynasty / max * 100).toFixed(1)}%"></i></span><span class="v num">${fmt(r.dynasty)}</span></div>`).join("");
+  const mv = (list, cls) => list.map(m => `<div class="mvr">${pos(m.pos)}<span class="nm">${esc(m.player)}<small>${av(m.team, "xs")}${esc(m.team)} · ${fmt(m.value)}</small></span><span class="d ${cls} num">${m.trend > 0 ? "+" : ""}${fmt(m.trend)}</span></div>`).join("");
+  $("#risers").innerHTML = mv(D.risers, "up"); $("#fallers").innerHTML = mv(D.fallers, "dn");
+}
+
+function spy() {
+  const links = [...document.querySelectorAll("#jump a[href^='#']")];
+  const obs = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) links.forEach(l => l.classList.toggle("on", l.getAttribute("href") === "#" + e.target.id));
+  }), { rootMargin: "-40% 0px -55% 0px" });
+  document.querySelectorAll("section").forEach(s => obs.observe(s));
+}
+
+if (D) init(); else document.body.insertAdjacentHTML("afterbegin", "<p style='padding:20px'>Data missing. Run build_season.py.</p>");
+</script>
+</body>
+</html>
